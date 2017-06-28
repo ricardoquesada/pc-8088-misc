@@ -25,6 +25,24 @@ __start:
         mov ax, 0x0009
         int 0x10
 
+        call paint_screen
+
+        call load_file
+
+        mov ax, ss
+        mov ds, ax                      ; restore ds
+
+        call print_msg
+
+
+        xor  ah,ah                      ;Function number: get key
+        int  0x16                       ;Call BIOS keyboard interrupt
+
+        mov ax,0x4c00
+        int 0x21
+
+
+paint_screen:
 
         mov cx, 8000                    ; bank #0
         mov al, 0xee
@@ -60,18 +78,51 @@ rep     stosb
         mov es, bx
         mov di, 0x6000                  ; es:di: destination
 rep     stosb
+        ret
 
-        xor  ah,ah                      ;Function number: get key
-        int  0x16                       ;Call BIOS keyboard interrupt
 
-;        mov dx,hello
-;        mov ah,9
-;        int 0x21
-
-        mov ax,0x4c00
+print_msg:
+        mov dx, hello
+        mov ah,9
         int 0x21
+        ret
+
+
+load_file:
+        mov ah, 0x3d                    ; open file
+        mov al, 0
+        mov dx, filename
+        int 0x21
+        jc error
+
+        mov bx, ax                      ; file handle
+        mov cx, 32768
+        xor dx, dx
+        mov ax, 0xb800
+        mov ds, ax                      ; dst: ds:dx b800:0000
+        mov ah, 0x3f                    ; read file
+        int 0x21
+        jc error
+
+        mov ah, 0x3e                    ; close fd
+        int 0x21
+        jc error
+
+        ret
+
+error:
+        mov dx, error_msg
+        mov ah, 9
+        int 0x21
+        ret
 
 section .data
 
 hello:
         db 'hello, world', 13, 10, '$'
+
+error_msg:
+        db 'error', 13, 10, '$'
+
+filename:
+        db 'image.raw', 0
