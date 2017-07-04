@@ -10,6 +10,8 @@
 bits    16
 cpu     8086
 
+extern ZTimerOn, ZTimerOff, ZTimerReport
+
 section .text
         global __start
 __start:
@@ -28,21 +30,27 @@ __start:
 
         call    paint_screen
 
+        call    ZTimerOn
+
         call    load_file
+
+        call    ZTimerOff
 
         mov     ax,ss
         mov     ds,ax                      ; restore ds
 
         call    print_msg
 
-
         xor     ah,ah                      ;Function number: get key
         int     0x16                       ;Call BIOS keyboard interrupt
+
+        call    ZTimerReport
 
         mov     ax,0x4c00
         int     0x21
 
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 paint_screen:
 
         mov     cx,8000                    ; bank #0
@@ -82,6 +90,7 @@ paint_screen:
         ret
 
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 print_msg:
         mov     dx,hello
         mov     ah,9
@@ -89,6 +98,7 @@ print_msg:
         ret
 
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 load_file:
         mov     ah,0x3d                    ; open file
         mov     al,0

@@ -1,17 +1,31 @@
-.SILENT:
-
-.PHONY: res run
+.PHONY: default all clean
 
 DOSBOX_PATH=~/Applications/DOSBox.app/Contents/MacOS/DOSBox
 
-SRC=src/main.asm
+TARGET = bin/unigames.exe
+ASM = nasm
+ASMFLAGS = -felf
+LD = smlrl
+LDFLAGS = -small -map bin/unigames.map
 
-all: res unigames
+default: $(TARGET)
+all: res default
 
-unigames: ${SRC}
-	echo "Compiling..."
-	nasm -f elf -o obj/$@.o $^
-	smlrl -small obj/$@.o -o bin/unigames.exe -map obj/unigames.map
+OBJECTS = $(patsubst src/%.asm, obj/%.o, $(wildcard src/*.asm))
+
+obj/%.o: src/%.asm
+	$(ASM) $(ASMFLAGS) $< -o $@
+
+.PRECIOUS: $(TARGET) $(OBJECTS)
+
+$(TARGET): $(OBJECTS)
+	echo "Linking..."
+	$(LD) $(LDFLAGS) $(OBJECTS) -o $@
+
+clean:
+	echo "Cleaning..."
+	-rm -f obj/*.o
+	-rm -f $(TARGET)
 
 res:
 	echo "Generating resources..."
@@ -20,7 +34,3 @@ res:
 run:
 	echo "Running game..."
 	${DOSBOX_PATH} bin/unigames.exe
-
-clean:
-	rm obj/*
-	rm bin/*
