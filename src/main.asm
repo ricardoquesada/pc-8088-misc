@@ -28,8 +28,12 @@ section .text
 ;        mov dx, 0x3d8
 ;        out dx, al
 
+        call    print_msg
+        call    wait_key
+
         mov     ax,0x0009
         int     0x10
+
 
         call    paint_screen
 
@@ -41,10 +45,8 @@ section .text
         mov     ds,ax
         call    ZTimerOff
 
-        call    print_msg
 
-        xor     ah,ah                           ;Function number: get key
-        int     0x16                            ;Call BIOS keyboard interrupt
+        call    wait_key
 
         mov     ax,0x0002
         int     0x10
@@ -102,6 +104,11 @@ print_msg:
         int     0x21
         ret
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+wait_key:
+        xor     ah,ah                           ;Function number: get key
+        int     0x16                            ;Call BIOS keyboard interrupt
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 load_file:
