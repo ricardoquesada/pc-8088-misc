@@ -361,7 +361,7 @@ ZTimerReport:
 PrintGoodCount:
 	mov	ax,[TimedCount]
 	sub	ax,[ReferenceCount]
-	mov	si,[ASCIICountEnd -1]
+	mov	si,ASCIICountEnd -1
 ;
 ; Convert count to microseconds by multiplying by .8381.
 ;

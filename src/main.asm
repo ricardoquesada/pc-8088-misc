@@ -34,15 +34,17 @@ __start:
 
         call    load_file
 
+        push    ss
+        pop     ds
         call    ZTimerOff
-
-        mov     ax,ss
-        mov     ds,ax                      ; restore ds
 
         call    print_msg
 
         xor     ah,ah                      ;Function number: get key
         int     0x16                       ;Call BIOS keyboard interrupt
+
+        mov     ax,0x0002
+        int     0x10
 
         call    ZTimerReport
 
