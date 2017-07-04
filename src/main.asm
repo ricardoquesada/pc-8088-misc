@@ -28,9 +28,11 @@ section .text
 ;        mov dx, 0x3d8
 ;        out dx, al
 
+        int     0x3
         call    print_msg
         call    wait_key
 
+        int     0x3
         mov     ax,0x0009
         int     0x10
 
@@ -45,6 +47,7 @@ section .text
         mov     ds,ax
         call    ZTimerOff
 
+        call    print_msg
 
         call    wait_key
 

@@ -435,7 +435,8 @@ OverflowStr:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; BSS
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-segment .bss
+; Don't define a new section to prevent indexing issues. will be part of .data
+; section instead
 
 OriginalFlags:
         resb 1                                  ;storage for upper byte of
