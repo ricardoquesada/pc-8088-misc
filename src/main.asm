@@ -16,13 +16,13 @@ extern ZTimerOn, ZTimerOff, ZTimerReport
 ; CODE
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .text
-        global __start
-__start:
-
-        ; these 3 lines are only needed for .EXEs, but not .COMs
-        mov     ax,ss
-        mov     ds,ax                           ;DS=ES=SS in small model .EXEs
-        mov     es,ax                           ; and in tiny model .COMs
+..start:
+        mov     ax,data
+        mov     ds,ax
+        mov     es,ax
+        mov     ax,stack
+        mov     ss,ax
+        mov     sp,stacktop
 
 ;        mov al, 0b0001_0000                    ;40x25, text, color, bright
 ;        mov dx, 0x3d8
@@ -37,8 +37,8 @@ __start:
 
         call    load_file
 
-        push    ss
-        pop     ds
+        mov     ax,data
+        mov     ds,ax
         call    ZTimerOff
 
         call    print_msg
@@ -145,3 +145,11 @@ error_msg:
 
 filename:
         db      'image.raw', 0
+
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; STACK
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+section .stack stack
+        resb 4096
+stacktop:

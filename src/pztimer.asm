@@ -343,8 +343,8 @@ ZTimerReport:
         push    ds
 
 ;        assume  ds:Code
-        push    ss                              ;DOS functions require that DS point
-        pop     ds                              ; to text to be displayed on the screen
+        mov     ax,data                         ;DOS functions require that DS point
+        mov     ds,ax                           ; to text to be displayed on the screen
 
 ;
 ; Check for timer 0 overflow.

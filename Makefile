@@ -4,9 +4,9 @@ DOSBOX_PATH=~/Applications/DOSBox.app/Contents/MacOS/DOSBox
 
 TARGET = bin/unigames.exe
 ASM = nasm
-ASMFLAGS = -felf
-LD = smlrl
-LDFLAGS = -small -map bin/unigames.map
+ASMFLAGS = -fobj
+LD = alink
+LDFLAGS = -oEXE -m
 
 default: $(TARGET)
 all: res default
@@ -20,7 +20,7 @@ obj/%.o: src/%.asm
 
 $(TARGET): $(OBJECTS)
 	echo "Linking..."
-	$(LD) $(LDFLAGS) $(OBJECTS) -o $@
+	$(LD) $(OBJECTS) $(LDFLAGS) -o $@
 
 clean:
 	echo "Cleaning..."
