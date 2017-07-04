@@ -12,16 +12,19 @@ cpu     8086
 
 extern ZTimerOn, ZTimerOff, ZTimerReport
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; CODE
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .text
         global __start
 __start:
 
         ; these 3 lines are only needed for .EXEs, but not .COMs
         mov     ax,ss
-        mov     ds,ax ; DS=ES=SS in small model .EXEs and in tiny model .COMs
-        mov     es,ax
+        mov     ds,ax                           ;DS=ES=SS in small model .EXEs
+        mov     es,ax                           ; and in tiny model .COMs
 
-;        mov al, 0b0001_0000     ;40x25, text, color, bright
+;        mov al, 0b0001_0000                    ;40x25, text, color, bright
 ;        mov dx, 0x3d8
 ;        out dx, al
 
@@ -40,8 +43,8 @@ __start:
 
         call    print_msg
 
-        xor     ah,ah                      ;Function number: get key
-        int     0x16                       ;Call BIOS keyboard interrupt
+        xor     ah,ah                           ;Function number: get key
+        int     0x16                            ;Call BIOS keyboard interrupt
 
         mov     ax,0x0002
         int     0x10
@@ -55,39 +58,39 @@ __start:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 paint_screen:
 
-        mov     cx,8000                    ; bank #0
+        mov     cx,8000                         ;bank #0
         mov     al,0xee
 
         mov     bx,0xb800
         mov     es,bx
-        xor     di,di                      ; es:di: destination
+        xor     di,di                           ;es:di: destination
         rep     stosb
 
 
-        mov     cx,8000                    ; bank #1
+        mov     cx,8000                         ;bank #1
         mov     al,0x12
 
         mov     bx,0xb800
         mov     es,bx
-        mov     di,0x2000                  ; es:di: destination
+        mov     di,0x2000                       ;es:di: destination
         rep     stosb
 
 
-        mov     cx,8000                    ; bank #2
+        mov     cx,8000                         ;bank #2
         mov     al,0x34
 
         mov     bx,0xb800
         mov     es,bx
-        mov     di,0x4000                  ; es:di: destination
+        mov     di,0x4000                       ;es:di: destination
         rep     stosb
 
 
-        mov     cx,8000                    ; bank #3
+        mov     cx,8000                         ;bank #3
         mov     al,0x56
 
         mov     bx,0xb800
         mov     es,bx
-        mov     di,0x6000                  ; es:di: destination
+        mov     di,0x6000                       ;es:di: destination
         rep     stosb
         ret
 
@@ -102,22 +105,22 @@ print_msg:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 load_file:
-        mov     ah,0x3d                    ; open file
+        mov     ah,0x3d                         ;open file
         mov     al,0
         mov     dx,filename
         int     0x21
         jc      error
 
-        mov     bx,ax                      ; file handle
+        mov     bx,ax                           ;file handle
         mov     cx,32768
         xor     dx,dx
         mov     ax,0xb800
-        mov     ds,ax                      ; dst: ds:dx b800:0000
-        mov     ah,0x3f                    ; read file
+        mov     ds,ax                           ;dst: ds:dx b800:0000
+        mov     ah,0x3f                         ;read file
         int     0x21
         jc      error
 
-        mov     ah,0x3e                    ; close fd
+        mov     ah,0x3e                         ;close fd
         int     0x21
         jc      error
 
@@ -129,6 +132,9 @@ error:
         int     0x21
         ret
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; DATA
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .data
 
 hello:
