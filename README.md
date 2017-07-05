@@ -1,4 +1,9 @@
-Install nasm and SmallerC
+# The UniGames for Tandy 1000
 
-http://www.nasm.us/
-https://github.com/alexfru/SmallerC
+Work in progress
+
+In order to compile it, download and install the following:
+
+* nasm: http://www.nasm.us/
+* alink: https://github.com/ricardoquesada/alink
+* Dosbox-x: http://dosbox-x.com/
