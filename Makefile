@@ -2,7 +2,7 @@
 
 TARGET = bin/unigames.exe
 ASM = nasm
-ASMFLAGS = -fobj
+ASMFLAGS = -fobj -Wall
 LD = alink
 LDFLAGS = -oEXE -m
 

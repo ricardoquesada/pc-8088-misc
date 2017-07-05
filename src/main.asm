@@ -28,16 +28,22 @@ section .text
 ;        mov dx, 0x3d8
 ;        out dx, al
 
-        int     0x3
-        call    print_msg
+
+        call    ZTimerOn                        ;test ram memory
+        call    paint_ram
+        call    ZTimerOff
+        call    ZTimerReport
         call    wait_key
 
-        int     0x3
         mov     ax,0x0009
         int     0x10
 
 
+        call    ZTimerOn                        ;test video memory
         call    paint_screen
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
 
         call    ZTimerOn
 
@@ -96,6 +102,45 @@ paint_screen:
         mov     bx,0xb800
         mov     es,bx
         mov     di,0x6000                       ;es:di: destination
+        rep     stosb
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+paint_ram:
+
+        mov     cx,8000                         ;bank #0
+        mov     al,0xee
+
+        mov     bx,data
+        mov     es,bx
+        mov     di,0x8000                       ;es:di: destination
+        rep     stosb
+
+
+        mov     cx,8000                         ;bank #1
+        mov     al,0x12
+
+        mov     bx,data
+        mov     es,bx
+        mov     di,0x8000                       ;es:di: destination
+        rep     stosb
+
+
+        mov     cx,8000                         ;bank #2
+        mov     al,0x34
+
+        mov     bx,data
+        mov     es,bx
+        mov     di,0x8000                       ;es:di: destination
+        rep     stosb
+
+
+        mov     cx,8000                         ;bank #3
+        mov     al,0x56
+
+        mov     bx,data
+        mov     es,bx
+        mov     di,0x8000                       ;es:di: destination
         rep     stosb
         ret
 

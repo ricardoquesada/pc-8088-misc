@@ -45,6 +45,8 @@
 ; by ZTimerOn, and are restored by ZTimerOff to the state they were
 ; in when ZTimerOn was called.
 ;
+;
+; Ported from Masm to Nasm + indentation fixes - riq.
 
 bits    16
 cpu     8086
