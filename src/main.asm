@@ -17,9 +17,9 @@ extern ZTimerOn, ZTimerOff, ZTimerReport
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .text
 ..start:
-        mov     ax,data
-        mov     ds,ax
-        mov     es,ax
+        mov     ax,data                         ;init segments
+        mov     ds,ax                           ; DS=ES: same segment
+        mov     es,ax                           ; SS: stack
         mov     ax,stack
         mov     ss,ax
         mov     sp,stacktop
@@ -43,10 +43,10 @@ section .text
 
         call    load_file
 
-        mov     ax,data
-        mov     ds,ax
         call    ZTimerOff
 
+        mov     ax,data
+        mov     ds,ax
         call    print_msg
 
         call    wait_key

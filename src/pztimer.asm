@@ -116,7 +116,7 @@ ZTimerOn:
         pop     ax                              ;get flags so we can keep
                                                 ; interrupts off when leaving
                                                 ; this routine
-        mov     [OriginalFlags],ah              ;remember the state of the
+        mov     [cs:OriginalFlags],ah           ;remember the state of the
                                                 ; Interrupt flag
         and     ah,0fdh                         ;set pushed interrupt flag
                                                 ; to 0
@@ -204,7 +204,7 @@ ZTimerOff:
                                                 ; register
         and     al,1                            ;set AL to 1 if IRQ0 (the
                                                 ; timer interrupt) is pending
-        mov     [OverflowFlag],al               ;store the timer overflow
+        mov     [cs:OverflowFlag],al            ;store the timer overflow
                                                 ; status
 ;
 ; Allow interrupts to happen again.
@@ -221,12 +221,12 @@ ZTimerOff:
         neg     ax                              ;convert from countdown
                                                 ; remaining to elapsed
                                                 ; count
-        mov     [TimedCount],ax
+        mov     [cs:TimedCount],ax
 ; Time a zero-length code fragment, to get a reference for how
 ; much overhead this routine has. Time it 16 times and average it,
 ; for accuracy, rounding the result.
 ;
-        mov     word [ReferenceCount],0
+        mov     word [cs:ReferenceCount],0
         mov     cx,16
         cli                                     ;interrupts off to allow a
                                                 ; precise reference count
@@ -235,14 +235,14 @@ RefLoop:
         call    ReferenceZTimerOff
         loop    RefLoop
         sti
-        add     word [ReferenceCount],8         ;total + (0.5 * 16)
+        add     word [cs:ReferenceCount],8      ;total + (0.5 * 16)
         mov     cl,4
-        shr     word [ReferenceCount],cl        ;(total) / 16 + 0.5
+        shr     word [cs:ReferenceCount],cl     ;(total) / 16 + 0.5
 ;
 ; Restore originaLinterrupt state.
 ;
         pop     ax                              ;retrieve flags when called
-        mov     ch,[OriginalFlags]              ;get back the original upper
+        mov     ch,[cs:OriginalFlags]           ;get back the original upper
                                                 ; byte of the FLAGS register
         and     ch,! 0fdh                       ;only care about original
                                                 ; interrupt flag...
@@ -318,7 +318,7 @@ ReferenceZTimerOff:
         neg     ax                              ;convert from countdown
                                                 ; remaining to amount
                                                 ; counted down
-        add     [ReferenceCount],ax
+        add     [cs:ReferenceCount],ax
 ;
 ; Restore the context of the program being timed and return to it.
 ;
@@ -342,14 +342,13 @@ ZTimerReport:
         push    si
         push    ds
 
-;        assume  ds:Code
-        mov     ax,data                         ;DOS functions require that DS point
-        mov     ds,ax                           ; to text to be displayed on the screen
+        push cs                                 ;DOS functions require that DS point
+        pop ds                                  ; to text to be displayed on the screen
 
 ;
 ; Check for timer 0 overflow.
 ;
-        cmp     byte [OverflowFlag],0
+        cmp     byte [cs:OverflowFlag],0
         jz      PrintGoodCount
         mov     dx,OverflowStr
         mov     ah,9
@@ -359,8 +358,8 @@ ZTimerReport:
 ; Convert net count to decimal ASCII in microseconds.
 ;
 PrintGoodCount:
-        mov     ax,[TimedCount]
-        sub     ax,[ReferenceCount]
+        mov     ax,[cs:TimedCount]
+        sub     ax,[cs:ReferenceCount]
         mov     si,ASCIICountEnd -1
 ;
 ; Convert count to microseconds by multiplying by .8381.
@@ -401,7 +400,7 @@ EndZTimerReport:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; DATA
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-segment .data
+; same segment as CS to simplify
 
 ;
 ; String printed to report results.
@@ -435,8 +434,7 @@ OverflowStr:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; BSS
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-; Don't define a new section to prevent indexing issues. will be part of .data
-; section instead
+; same segment as CS to simplify
 
 OriginalFlags:
         resb 1                                  ;storage for upper byte of
