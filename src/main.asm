@@ -21,8 +21,10 @@ section .text
         mov     ds,ax                           ; DS=ES: same segment
         mov     es,ax                           ; SS: stack
         mov     ax,stack
-        mov     ss,ax
+        cli                                     ;disable interrupts while
+        mov     ss,ax                           ; setting the stack pointer
         mov     sp,stacktop
+        sti
 
 ;        mov al, 0b0001_0000                    ;40x25, text, color, bright
 ;        mov dx, 0x3d8
