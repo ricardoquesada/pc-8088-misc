@@ -18,11 +18,118 @@ section .text
         sti
 
         call    wait_key
+        call    save_file_zero                  ;Save 0000-03ff
+        call    save_file_e000                  ;Save BIOS e000-7FFF
+        call    save_file_e800                  ;Save BIOS e800-FFFF
         call    save_file_f000                  ;Save BIOS f000-7FFF
         call    save_file_f800                  ;Save BIOS f800-FFFF
 
         mov     ax,0x4c00                       ;exit to DOS
         int     0x21
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+save_file_zero:
+        push    ds
+
+        mov     ax,0x3c00                       ;create file
+        mov     dx,filename_zero
+        mov     cx,0                            ;attributes
+        int     0x21
+        jc      .error
+
+        mov     bx,ax                           ;file handle
+        mov     cx,0x0400                       ;1k bytes to write
+
+        sub     dx,dx                           ;buffer DS:DX 0000:0000
+        mov     ds,dx
+
+        mov     ax,0x4000                       ;write file
+        int     0x21
+        jc      .error
+
+        mov     ax,0x3e00                       ;close fd
+        int     0x21
+        jc      .error
+
+        pop     ds
+        ret
+
+.error:
+        pop     ds
+        mov     dx,error_msg
+        mov     ah,9
+        int     0x21
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+save_file_e000:
+        push    ds
+
+        mov     ax,0x3c00                       ;create file
+        mov     dx,filename_e000
+        mov     cx,0                            ;attributes
+        int     0x21
+        jc      .error
+
+        mov     bx,ax                           ;file handle
+        mov     cx,0x8000                       ;32k bytes to write
+
+        sub     dx,dx                           ;buffer DS:DX e000:0000
+        mov     ax,0xe000
+        mov     ds,ax
+
+        mov     ax,0x4000                       ;write file
+        int     0x21
+        jc      .error
+
+        mov     ax,0x3e00                       ;close fd
+        int     0x21
+        jc      .error
+
+        pop     ds
+        ret
+
+.error:
+        pop     ds
+        mov     dx,error_msg
+        mov     ah,9
+        int     0x21
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+save_file_e800:
+        push    ds
+
+        mov     ax,0x3c00                       ;create file
+        mov     dx,filename_e800
+        mov     cx,0                            ;attributes
+        int     0x21
+        jc      .error
+
+        mov     bx,ax                           ;file handle
+        mov     cx,0x8000                       ;bytes to write
+
+        sub     dx,dx                           ;buffer DS:DX e800:0000
+        mov     ax,0xe800
+        mov     ds,ax
+
+        mov     ax,0x4000                       ;write file
+        int     0x21
+        jc      .error
+
+        mov     ax,0x3e00                       ;close fd
+        int     0x21
+        jc      .error
+
+        pop     ds
+        ret
+
+.error:
+        pop     ds
+        mov     dx,error_msg
+        mov     ah,9
+        int     0x21
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 save_file_f000:
@@ -105,10 +212,16 @@ wait_key:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .data
 
+filename_zero:
+        db      'ZEROPAGE.BIN', 0
 filename_f000:
         db      'BIOSF000.BIN', 0
 filename_f800:
         db      'BIOSF800.BIN', 0
+filename_e000:
+        db      'BIOSE000.BIN', 0
+filename_e800:
+        db      'BIOSE800.BIN', 0
 error_msg:
         db      'error writing file', '$'
 
