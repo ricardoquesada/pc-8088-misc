@@ -41,6 +41,7 @@ save_file_zero:
 
         mov     cx,2048
 
+        cld
         rep movsw
 
         push    es 
@@ -55,7 +56,7 @@ save_file_zero:
         mov     bx,ax                           ;file handle
         mov     cx,0x0400                       ;1k bytes to write
 
-        sub     dx,tmp_int_vector               ; ds:dx buffer to save
+        mov     dx,tmp_int_vector               ;ds:dx buffer to save
 
         mov     ax,0x4000                       ;write file
         int     0x21
