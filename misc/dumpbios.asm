@@ -18,9 +18,9 @@ section .text
         sti
 
         call    wait_key
-;        call    save_file_zero                  ;Save 0000-03ff
-        call    save_file_e000                  ;Save BIOS e000-7FFF
-        call    save_file_e800                  ;Save BIOS e800-FFFF
+        call    save_file_zero                  ;Save 0000-03ff
+;        call    save_file_e000                  ;Save BIOS e000-7FFF
+;        call    save_file_e800                  ;Save BIOS e800-FFFF
 ;        call    save_file_f000                  ;Save BIOS f000-7FFF
 ;        call    save_file_f800                  ;Save BIOS f800-FFFF
 
@@ -30,6 +30,21 @@ section .text
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 save_file_zero:
         push    ds
+        push    es
+
+        xor     si,si,
+        mov     ds,si                           ;ds:si = 0000:0000
+
+        mov     ax,seg tmp_int_vector
+        mov     es,ax
+        mov     di,tmp_int_vector               ;es:di = ds:tmp_int_vector
+
+        mov     cx,2048
+
+        rep movsw
+
+        push    es 
+        pop     ds
 
         mov     ax,0x3c00                       ;create file
         mov     dx,filename_zero
@@ -40,8 +55,7 @@ save_file_zero:
         mov     bx,ax                           ;file handle
         mov     cx,0x0400                       ;1k bytes to write
 
-        sub     dx,dx                           ;buffer DS:DX 0000:0000
-        mov     ds,dx
+        sub     dx,tmp_int_vector               ; ds:dx buffer to save
 
         mov     ax,0x4000                       ;write file
         int     0x21
@@ -51,10 +65,12 @@ save_file_zero:
         int     0x21
         jc      .error
 
+        pop     es
         pop     ds
         ret
 
 .error:
+        pop     es
         pop     ds
         mov     dx,error_msg
         mov     ah,9
@@ -224,6 +240,9 @@ filename_e800:
         db      'BIOSE800.BIN', 0
 error_msg:
         db      'error writing file', '$'
+
+tmp_int_vector:
+        resb 4096
 
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
