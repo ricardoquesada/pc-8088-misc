@@ -18,11 +18,11 @@ section .text
         sti
 
         call    wait_key
-        call    save_file_zero                  ;Save 0000-03ff
+;        call    save_file_zero                  ;Save 0000-03ff
         call    save_file_e000                  ;Save BIOS e000-7FFF
         call    save_file_e800                  ;Save BIOS e800-FFFF
-        call    save_file_f000                  ;Save BIOS f000-7FFF
-        call    save_file_f800                  ;Save BIOS f800-FFFF
+;        call    save_file_f000                  ;Save BIOS f000-7FFF
+;        call    save_file_f800                  ;Save BIOS f800-FFFF
 
         mov     ax,0x4c00                       ;exit to DOS
         int     0x21
