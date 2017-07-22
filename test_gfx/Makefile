@@ -1,6 +1,7 @@
 .PHONY: default all clean
 
-TARGET = bin/unigames.exe
+TARGET_NAME = t320200.exe
+TARGET = bin/${TARGET_NAME}
 ASM = nasm
 ASMFLAGS = -fobj -Wall
 LD = alink
@@ -9,9 +10,9 @@ LDFLAGS = -oEXE -m
 default: $(TARGET)
 all: res default
 
-OBJECTS = $(patsubst src/%.asm, obj/%.o, $(wildcard src/*.asm))
+OBJECTS = test_320_200_16.o pztimer.o
 
-obj/%.o: src/%.asm
+%.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
@@ -22,13 +23,13 @@ $(TARGET): $(OBJECTS)
 
 clean:
 	echo "Cleaning..."
-	-rm -f obj/*.o
+	-rm -f *.o
 	-rm -f $(TARGET)
 
 res:
 	echo "Generating resources..."
-	python3 misc/convert_to_320_200_16.py res/intro.data -o bin/image.raw
+	python3 ../tools/convert_to_320_200_16.py res/intro.data -o bin/image.raw
 
 run: $(TARGET)
 	echo "Running game..."
-	dosbox-x -conf misc/dosbox-x.conf -c "mount c ./bin/ && dir" -c "c:" -c "unigames.exe"
+	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ./bin/ && dir" -c "c:" -c ${TARGET_NAME}

@@ -27,4 +27,4 @@ clean:
 
 run: $(TARGET)
 	echo "Running game..."
-	dosbox-x -conf ./dosbox-x.conf -c "mount c ./bin/ && dir" -c "c:" -c "dumpbios.exe"
+	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ./bin/ && dir" -c "c:" -c "dumpbios.exe"
