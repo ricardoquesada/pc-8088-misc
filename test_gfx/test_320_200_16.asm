@@ -169,7 +169,7 @@ load_file:
         jc      error
 
         mov     bx,ax                           ;file handle
-        mov     cx,32768
+        mov     cx,32768                        ;bytes to read
         xor     dx,dx
         mov     ax,0xb800
         mov     ds,ax                           ;dst: ds:dx b800:0000
@@ -200,8 +200,20 @@ hello:
 error_msg:
         db      'error', 13, 10, '$'
 
-filename:
-        db      'image.raw', 0
+file_320_200_16:
+        db      '32020016.raw', 0
+
+file_320_200_4:
+        db      '32020004.raw', 0
+
+file_160_200_16:
+        db      '16020016.raw', 0
+
+file_640_200_4:
+        db      '64020004.raw', 0
+
+file_640_200_2:
+        db      '64020002.raw', 0
 
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
