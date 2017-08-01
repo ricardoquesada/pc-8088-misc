@@ -28,11 +28,11 @@ clean:
 
 res:
 	echo "Generating resources..."
-	python3 ../tools/convert_to_320_200_16.py res/intro.data -o bin/32020016.raw
-	-cp bin/32020016.raw bin/32020004.raw
-	-cp bin/32020016.raw bin/16020016.raw
-	-cp bin/32020016.raw bin/64020004.raw
-	-cp bin/32020016.raw bin/64020002.raw
+	python3 ../tools/convert_to_bios.py res/320_200.data -g 4 -o bin/32020004.raw
+	python3 ../tools/convert_to_bios.py res/640_200.data -g 6 -o bin/64020002.raw
+	python3 ../tools/convert_to_bios.py res/160_200.data -g 8 -o bin/16020016.raw
+	python3 ../tools/convert_to_bios.py res/320_200.data -g 9 -o bin/32020016.raw
+	python3 ../tools/convert_to_bios.py res/640_200.data -g 10 -o bin/64020004.raw
 
 run: $(TARGET)
 	echo "Running game..."

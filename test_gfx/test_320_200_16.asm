@@ -44,31 +44,27 @@ section .text
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 
 test_320_200_4:
-        mov     si,0
+        mov     si,0 * 2
         call    test_gfx
         ret
 
 test_640_200_2:
-        mov     si,1
-        shl     si,1
+        mov     si,1 * 2
         call    test_gfx
         ret
 
 test_160_200_16:
-        mov     si,2
-        shl     si,1
+        mov     si,2 * 2
         call    test_gfx
         ret
 
 test_320_200_16:
-        mov     si,3
-        shl     si,1
+        mov     si,3 * 2
         call    test_gfx
         ret
 
 test_640_200_4:
-        mov     si,4
-        shl     si,1
+        mov     si,4 * 2
         call    test_gfx
         ret
 
@@ -174,7 +170,7 @@ load_file:
         jc      .error
 
         mov     bx,ax                           ;file handle
-        mov     cx,[bytes_to_load+si]      ;bytes to read
+        mov     cx,[bytes_to_load+si]           ;bytes to read
         xor     dx,dx
         mov     ax,[gfx_buffer_addr+si]
         mov     ds,ax                           ;dst: ds:dx b800:0000
