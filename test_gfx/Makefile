@@ -1,4 +1,4 @@
-.PHONY: default all clean
+.PHONY: default all clean res
 
 TARGET_NAME = t320200.exe
 TARGET = bin/${TARGET_NAME}
@@ -28,7 +28,7 @@ clean:
 
 res:
 	echo "Generating resources..."
-	python3 ../tools/convert_to_320_200_16.py res/intro.data -o bin/image.raw
+	python3 ../tools/convert_to_320_200_16.py res/intro.data -o bin/32020016.raw
 
 run: $(TARGET)
 	echo "Running game..."

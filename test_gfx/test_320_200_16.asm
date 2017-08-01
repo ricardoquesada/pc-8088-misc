@@ -164,7 +164,7 @@ wait_key:
 load_file:
         mov     ah,0x3d                         ;open file
         mov     al,0
-        mov     dx,filename
+        mov     dx,file_320_200_16
         int     0x21
         jc      error
 
