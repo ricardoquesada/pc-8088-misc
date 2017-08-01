@@ -26,58 +26,75 @@ section .text
         mov     sp,stacktop
         sti
 
-;        mov al, 0b0001_0000                    ;40x25, text, color, bright
-;        mov dx, 0x3d8
-;        out dx, al
-
-
-        call    ZTimerOn                        ;test ram memory
-        call    paint_ram
-        call    ZTimerOff
-        call    ZTimerReport
         call    wait_key
 
-        mov     ax,0x0009
+        call    test_320_200_4                  ;call different tests
+        call    test_640_200_2
+        call    test_160_200_16
+        call    test_320_200_16
+        call    test_640_200_4
+
+        mov     ax,0x0002                       ;text mode 80x25
         int     0x10
-
-
-        call    ZTimerOn                        ;test video memory
-        call    paint_screen
-        call    ZTimerOff
-        call    ZTimerReport
-        call    wait_key
-
-        call    ZTimerOn
-
-        call    load_file
-
-        call    ZTimerOff
-
-        mov     ax,data
-        mov     ds,ax
-        call    print_msg
-
-        call    wait_key
-
-        mov     ax,0x0002
-        int     0x10
-
-        call    ZTimerReport
 
         mov     ax,0x4c00
-        int     0x21
+        int     0x21                            ;exit to DOS
 
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+
+test_320_200_4:
+        mov     si,0
+        call    test_gfx
+        ret
+
+test_640_200_2:
+        mov     si,1
+        shl     si,1
+        call    test_gfx
+        ret
+
+test_160_200_16:
+        mov     si,2
+        shl     si,1
+        call    test_gfx
+        ret
+
+test_320_200_16:
+        mov     si,3
+        shl     si,1
+        call    test_gfx
+        ret
+
+test_640_200_4:
+        mov     si,4
+        shl     si,1
+        call    test_gfx
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+test_gfx:
+        int     3
+        mov     ax, [gfx_modes+si]              ;get correct video mode for dx
+        int     0x10                            ;switch video mode
+
+        call    ZTimerOn
+        call    load_file
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 paint_screen:
 
         mov     cx,8000                         ;bank #0
-        mov     al,0xee
+        mov     al,0xee                         ;byte to 'paint'
 
         mov     bx,0xb800
         mov     es,bx
         xor     di,di                           ;es:di: destination
-        rep     stosb
+        rep stosb
 
 
         mov     cx,8000                         ;bank #1
@@ -86,7 +103,7 @@ paint_screen:
         mov     bx,0xb800
         mov     es,bx
         mov     di,0x2000                       ;es:di: destination
-        rep     stosb
+        rep stosb
 
 
         mov     cx,8000                         ;bank #2
@@ -95,7 +112,7 @@ paint_screen:
         mov     bx,0xb800
         mov     es,bx
         mov     di,0x4000                       ;es:di: destination
-        rep     stosb
+        rep stosb
 
 
         mov     cx,8000                         ;bank #3
@@ -104,7 +121,7 @@ paint_screen:
         mov     bx,0xb800
         mov     es,bx
         mov     di,0x6000                       ;es:di: destination
-        rep     stosb
+        rep stosb
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -116,7 +133,7 @@ paint_ram:
         mov     bx,data
         mov     es,bx
         mov     di,0x8000                       ;es:di: destination
-        rep     stosb
+        rep stosb
 
 
         mov     cx,8000                         ;bank #1
@@ -125,7 +142,7 @@ paint_ram:
         mov     bx,data
         mov     es,bx
         mov     di,0x8000                       ;es:di: destination
-        rep     stosb
+        rep stosb
 
 
         mov     cx,8000                         ;bank #2
@@ -134,7 +151,7 @@ paint_ram:
         mov     bx,data
         mov     es,bx
         mov     di,0x8000                       ;es:di: destination
-        rep     stosb
+        rep stosb
 
 
         mov     cx,8000                         ;bank #3
@@ -143,15 +160,39 @@ paint_ram:
         mov     bx,data
         mov     es,bx
         mov     di,0x8000                       ;es:di: destination
-        rep     stosb
+        rep stosb
         ret
 
-
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-print_msg:
-        mov     dx,hello
+load_file:
+        push    ds
+
+        mov     ah,0x3d                         ;open file
+        mov     al,0
+        mov     dx,[filenames+si]
+        int     0x21
+        jc      .error
+
+        mov     bx,ax                           ;file handle
+        mov     cx,[bytes_to_load+si]      ;bytes to read
+        xor     dx,dx
+        mov     ax,[gfx_buffer_addr+si]
+        mov     ds,ax                           ;dst: ds:dx b800:0000
+        mov     ah,0x3f                         ;read file
+        int     0x21
+        jc      .error
+
+        mov     ah,0x3e                         ;close fd
+        int     0x21
+        jnc     .exit                           ;error? no, then exit
+                                                ; else, falltrhought to error
+.error:
+        int     3
+        mov     dx,error_msg
         mov     ah,9
         int     0x21
+.exit:
+        pop     ds
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -160,39 +201,39 @@ wait_key:
         int     0x16                            ;Call BIOS keyboard interrupt
         ret
 
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-load_file:
-        mov     ah,0x3d                         ;open file
-        mov     al,0
-        mov     dx,file_320_200_16
-        int     0x21
-        jc      error
-
-        mov     bx,ax                           ;file handle
-        mov     cx,32768                        ;bytes to read
-        xor     dx,dx
-        mov     ax,0xb800
-        mov     ds,ax                           ;dst: ds:dx b800:0000
-        mov     ah,0x3f                         ;read file
-        int     0x21
-        jc      error
-
-        mov     ah,0x3e                         ;close fd
-        int     0x21
-        jc      error
-
-        ret
-
-error:
-        mov     dx,error_msg
-        mov     ah,9
-        int     0x21
-        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; DATA
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .data
+
+gfx_modes:
+        dw 0x0004                               ;int 0x10 ah=0 gfx modes
+        dw 0x0006
+        dw 0x0008
+        dw 0x0009
+        dw 0x000a
+
+gfx_buffer_addr:
+        dw 0xb800
+        dw 0xb800
+        dw 0xb800
+        dw 0xb800
+        dw 0xb800
+
+bytes_to_load:
+        dw 16000                                ;bytes to load from file
+        dw 16000
+        dw 16000
+        dw 32000
+        dw 32000
+
+filenames:
+        dw file_320_200_4                       ;filename to load
+        dw file_640_200_2
+        dw file_160_200_16
+        dw file_320_200_16
+        dw file_640_200_4
 
 hello:
         db      'hello, world', 13, 10, '$'

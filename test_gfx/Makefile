@@ -29,6 +29,10 @@ clean:
 res:
 	echo "Generating resources..."
 	python3 ../tools/convert_to_320_200_16.py res/intro.data -o bin/32020016.raw
+	-cp bin/32020016.raw bin/32020004.raw
+	-cp bin/32020016.raw bin/16020016.raw
+	-cp bin/32020016.raw bin/64020004.raw
+	-cp bin/32020016.raw bin/64020002.raw
 
 run: $(TARGET)
 	echo "Running game..."
