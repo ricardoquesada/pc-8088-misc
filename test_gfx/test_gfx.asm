@@ -80,12 +80,14 @@ test_gfx:
         call    ZTimerOff
         call    ZTimerReport
 
+        call    wait_key
         call    scroll_up
         call    wait_key
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 scroll_up:
+        mov     [crtc_start_addr], word 0
         mov     cx,[lines_per_screen+si]
 .l0:
         call    wait_retrace
@@ -230,11 +232,11 @@ chars_per_line:                                 ;for scrolling one line
         dw 80
 
 lines_per_screen:                               ;for scrolling a full page
-        dw 100
-        dw 100
-        dw 100
-        dw 50
-        dw 50
+        dw 102
+        dw 102
+        dw 102
+        dw 51
+        dw 51
 
 filenames:
         dw file_320_200_4                       ;filename to load
