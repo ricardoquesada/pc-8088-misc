@@ -86,7 +86,7 @@ test_gfx:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 scroll_up:
-        mov     cx,100
+        mov     cx,[lines_per_screen+si]
 .l0:
         call    wait_retrace
         call    inc_start_addr
@@ -113,7 +113,7 @@ wait_retrace:
 inc_start_addr:
         int     3
         mov     bx,[crtc_start_addr]
-        add     bx,40
+        add     bx,[chars_per_line+si]
         mov     [crtc_start_addr],bx
 
         mov     dx,0x3d4
@@ -155,45 +155,6 @@ clear_video_mem:
         mov     di,0x0000                       ;es:di: destination
         sub     ax,ax
         rep stosw
-        ret
-
-;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-paint_ram:
-
-        mov     cx,8000                         ;bank #0
-        mov     al,0xee
-
-        mov     bx,data
-        mov     es,bx
-        mov     di,0x8000                       ;es:di: destination
-        rep stosb
-
-
-        mov     cx,8000                         ;bank #1
-        mov     al,0x12
-
-        mov     bx,data
-        mov     es,bx
-        mov     di,0x8000                       ;es:di: destination
-        rep stosb
-
-
-        mov     cx,8000                         ;bank #2
-        mov     al,0x34
-
-        mov     bx,data
-        mov     es,bx
-        mov     di,0x8000                       ;es:di: destination
-        rep stosb
-
-
-        mov     cx,8000                         ;bank #3
-        mov     al,0x56
-
-        mov     bx,data
-        mov     es,bx
-        mov     di,0x8000                       ;es:di: destination
-        rep stosb
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -260,6 +221,20 @@ bytes_to_load:
         dw 16384
         dw 32768
         dw 32768
+
+chars_per_line:                                 ;for scrolling one line
+        dw 40
+        dw 40
+        dw 40
+        dw 80
+        dw 80
+
+lines_per_screen:                               ;for scrolling a full page
+        dw 100
+        dw 100
+        dw 100
+        dw 50
+        dw 50
 
 filenames:
         dw file_320_200_4                       ;filename to load
