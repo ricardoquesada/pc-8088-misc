@@ -70,15 +70,28 @@ test_640_200_4:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 test_gfx:
-        int     3
         mov     ax, [gfx_modes+si]              ;get correct video mode for dx
         int     0x10                            ;switch video mode
+
+        call    clear_video_mem
 
         call    ZTimerOn
         call    load_file
         call    ZTimerOff
         call    ZTimerReport
+
+        call    scroll_up
         call    wait_key
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+scroll_up:
+        mov     cx,100
+.l0:
+        call    wait_retrace
+        call    inc_start_addr
+        loop    .l0
+
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -86,14 +99,39 @@ wait_retrace:
 
         mov     dx,0x3da
 .l0:
-        in      al,dx                           ;test for vertical retrace
-        test    al,8
+        in      al,dx                           ;wait for vertical retrace
+        test    al,8                            ; to start
         jz      .l0
 
 .l1:
-        in      al,dx                           ;test for vertical retrace
+        in      al,dx                           ;wait for vertical retrace
         test    al,8                            ; to finish
         jnz     .l1
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+inc_start_addr:
+        int     3
+        mov     bx,[crtc_start_addr]
+        add     bx,40
+        mov     [crtc_start_addr],bx
+
+        mov     dx,0x3d4
+        mov     al,0xc                          ;select CRTC start address lo
+        out     dx,al
+
+        inc     dx                              ;set value for CRTC lo address
+        mov     al,bh
+        out     dx,al
+
+        dec     dx
+        mov     al,0xd
+        out     dx,al                           ;select CRTC start address hi
+
+        inc     dx
+        mov     al,bl
+        out     dx,al                           ;set value for CRTC hi address
+
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -105,45 +143,18 @@ set_border_color:
         mov     dx,0x3de
         mov     al,1                            ;1=blue color
         out     dx,al
-        rts
+
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
-paint_screen:
-
-        mov     cx,8000                         ;bank #0
-        mov     al,0xee                         ;byte to 'paint'
+clear_video_mem:
+        mov     cx,0x4000                       ;32k = 16k * 2
 
         mov     bx,0xb800
         mov     es,bx
-        xor     di,di                           ;es:di: destination
-        rep stosb
-
-
-        mov     cx,8000                         ;bank #1
-        mov     al,0x12
-
-        mov     bx,0xb800
-        mov     es,bx
-        mov     di,0x2000                       ;es:di: destination
-        rep stosb
-
-
-        mov     cx,8000                         ;bank #2
-        mov     al,0x34
-
-        mov     bx,0xb800
-        mov     es,bx
-        mov     di,0x4000                       ;es:di: destination
-        rep stosb
-
-
-        mov     cx,8000                         ;bank #3
-        mov     al,0x56
-
-        mov     bx,0xb800
-        mov     es,bx
-        mov     di,0x6000                       ;es:di: destination
-        rep stosb
+        mov     di,0x0000                       ;es:di: destination
+        sub     ax,ax
+        rep stosw
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -278,7 +289,8 @@ file_640_200_4:
 file_640_200_2:
         db      '64020002.raw', 0
 
-
+crtc_start_addr:
+        dw      0
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
