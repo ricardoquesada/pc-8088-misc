@@ -218,11 +218,11 @@ gfx_buffer_addr:
         dw 0xb800
 
 bytes_to_load:
-        dw 16000                                ;bytes to load from file
-        dw 16000
-        dw 16000
-        dw 32000
-        dw 32000
+        dw 16384                                ;bytes to load from file
+        dw 16384
+        dw 16384
+        dw 32768
+        dw 32768
 
 filenames:
         dw file_320_200_4                       ;filename to load

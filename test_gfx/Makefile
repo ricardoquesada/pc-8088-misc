@@ -1,6 +1,6 @@
 .PHONY: default all clean res
 
-TARGET_NAME = t320200.exe
+TARGET_NAME = test_gfx.exe
 TARGET = bin/${TARGET_NAME}
 ASM = nasm
 ASMFLAGS = -fobj -Wall
@@ -10,7 +10,7 @@ LDFLAGS = -oEXE -m
 default: $(TARGET)
 all: res default
 
-OBJECTS = test_320_200_16.o pztimer.o
+OBJECTS = test_gfx.o pztimer.o
 
 %.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
