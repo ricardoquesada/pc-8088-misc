@@ -82,6 +82,32 @@ test_gfx:
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+wait_retrace:
+
+        mov     dx,0x3da
+.l0:
+        in      al,dx                           ;test for vertical retrace
+        test    al,8
+        jz      .l0
+
+.l1:
+        in      al,dx                           ;test for vertical retrace
+        test    al,8                            ; to finish
+        jnz     .l1
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+set_border_color:
+        mov     dx,0x3da
+        mov     al,2                            ;2=border color
+        out     dx,al
+
+        mov     dx,0x3de
+        mov     al,1                            ;1=blue color
+        out     dx,al
+        rts
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 paint_screen:
 
         mov     cx,8000                         ;bank #0
