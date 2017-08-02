@@ -14,13 +14,13 @@ from collections import namedtuple
 
 __docformat__ = 'restructuredtext'
 
-BIOSFormat = namedtuple('BIOSFormat', 'width, height, colors')
+BIOSFormat = namedtuple('BIOSFormat', 'width, height, colors, blocks')
 formats = {}
-formats[4] = BIOSFormat(320, 200, 4)        # 320 x 200 4 colors
-formats[6] = BIOSFormat(640, 200, 2)        # 640 x 200 2 colors
-formats[8] = BIOSFormat(160, 200, 16)       # 160 x 200 16 colors
-formats[9] = BIOSFormat(320, 200, 16)       # 320 x 200 16 colors
-formats[10] = BIOSFormat(640, 200, 4)       # 640 x 200 4 colors
+formats[4] = BIOSFormat(320, 200, 4, 2)        # 320 x 200 4 colors
+formats[6] = BIOSFormat(640, 200, 2, 2)        # 640 x 200 2 colors
+formats[8] = BIOSFormat(160, 200, 16, 2)       # 160 x 200 16 colors
+formats[9] = BIOSFormat(320, 200, 16, 4)       # 320 x 200 16 colors
+formats[10] = BIOSFormat(640, 200, 4, 4)       # 640 x 200 4 colors
 
 
 def parse_line_2(array):
@@ -92,11 +92,11 @@ def write_to_file(lines, out_fd, gfx_format):
 
     bits_per_color = math.log2(gfx_format.colors)
     size = gfx_format.height * gfx_format.width * (bits_per_color / 8)
-    lines_per_block = gfx_format.height // 4
+    lines_per_block = gfx_format.height // gfx_format.blocks
     ordered = []
-    for i in range(4):
+    for i in range(gfx_format.blocks):
         for j in range(lines_per_block):
-            ordered.append(lines[j * 4 + i])
+            ordered.append(lines[j * gfx_format.blocks + i])
         ordered.append(bytearray(192))
 
     for l in ordered:
