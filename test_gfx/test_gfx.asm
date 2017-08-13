@@ -119,7 +119,7 @@ inc_start_addr:
         mov     [crtc_start_addr],bx
 
         mov     dx,0x3d4
-        mov     al,0xc                          ;select CRTC start address lo
+        mov     al,0xc                          ;select CRTC start address hi
         out     dx,al
 
         inc     dx                              ;set value for CRTC lo address
@@ -128,7 +128,7 @@ inc_start_addr:
 
         dec     dx
         mov     al,0xd
-        out     dx,al                           ;select CRTC start address hi
+        out     dx,al                           ;select CRTC start address lo
 
         inc     dx
         mov     al,bl
