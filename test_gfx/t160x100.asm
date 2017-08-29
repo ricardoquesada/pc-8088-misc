@@ -75,11 +75,16 @@ do_test:
         call    do_out
         call    wait_key
 
-        mov     dx,0x3df
-        mov     al,0b1111_0110
+        mov     dx,0x3d8
+        mov     al,0b0010_1001                  ;text mode, 80x25, color
         out     dx,al
 
-        mov     dx,0x3dd
+        mov     dx,0x3df                        ;video address mode for...
+;       mov     al,0b1111_0110
+        mov     al,0b0011_1111
+        out     dx,al
+
+        mov     dx,0x3dd                        ;enable 1 segment of 32k
         mov     al,0b0010_1000
         out     dx,al
 
@@ -122,8 +127,8 @@ video_on:
 
 	    sti                                     ;enable interrupts
 
-	    mov     dx,0x3D8
-	    mov     al,9
+	    mov     dx,0x3d8
+	    mov     al,0b0000_1001
 	    out     dx,al
 
         ret
