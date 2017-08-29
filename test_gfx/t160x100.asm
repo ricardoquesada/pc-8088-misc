@@ -67,14 +67,6 @@ paint_screen:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 do_test:
-        mov     si,crt6845_3d4_a+16*4           ;table offset
-        call    do_out
-        call    wait_key
-
-        mov     si,crt6845_3d4_a+16*5           ;table offset
-        call    do_out
-        call    wait_key
-
         mov     dx,0x3d8
         mov     al,0b0010_1001                  ;text mode, 80x25, color
         out     dx,al
@@ -85,8 +77,16 @@ do_test:
         out     dx,al
 
         mov     dx,0x3dd                        ;enable 1 segment of 32k
-        mov     al,0b0010_1000
+        mov     al,0b1010_1000
         out     dx,al
+
+        mov     si,crt6845_3d4_a+16*4           ;table offset
+        call    do_out
+        call    wait_key
+
+        mov     si,crt6845_3d4_a+16*5           ;table offset
+        call    do_out
+        call    wait_key
 
         mov     si,crt6845_3d4_a+16*6           ;table offset
         call    do_out
