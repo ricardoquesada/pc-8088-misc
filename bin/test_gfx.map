@@ -1,0 +1,11 @@
+SEGMENT text PUBLIC USE16 BYTE ''
+  at 00000000, length 000003F3
+SEGMENT data PUBLIC USE16 BYTE ''
+  at 00000400, length 00000096
+SEGMENT stack STACK USE16 BYTE ''
+  at 000004A0, length 00001000
+
+publics:
+ZTimerOff at text:0000015C
+ZTimerOn at text:00000105
+ZTimerReport at text:00000211
