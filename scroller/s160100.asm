@@ -52,7 +52,7 @@ paint_screen:
         mov     si,image                        ;ds:si attributes
 
 .l0:
-        mov     al,222                          ;char
+        mov     ah,222                          ;char
         lodsb                                   ;attribute
         xchg    ah,al
 
