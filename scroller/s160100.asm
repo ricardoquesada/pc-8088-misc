@@ -147,8 +147,8 @@ do_scroll:
 
 .l0:
         call    wait_vert_retrace
-        call    scroll_pixels
         call    set_initial_pixels
+        call    scroll_pixels
 
         jmp .l0
         ret
@@ -160,11 +160,17 @@ scroll_pixels:
         push    es
         pop     ds
 
-        mov     cx,8*80                         ;scroll 8 lines
-        mov     si,92*160+2                     ;source: last char of screen
-        mov     di,92*160                       ;dest: last char of screen - 1
+        %assign i 0
+        %rep    8
 
-        rep movsw                               ;do the copy
+                mov     cx,79                   ;scroll 1 line of 80 chars
+                mov     si,(92+i)*160+2         ;source: last char of screen
+                mov     di,(92+i)*160           ;dest: last char of screen - 1
+
+                rep movsw                       ;do the copy
+
+        %assign i i+1
+        %endrep
 
         pop     ds
         ret
@@ -191,43 +197,45 @@ set_initial_pixels:
 
         mov     cx,8                            ;do this 8 times: one per pixel
 
-.l3:
+.repeat:
         mov     al,[charset + bx]               ;get charset definition of char
 
         sub     dx,dx
         mov     si,[pixel_idx]
         test    al,[pixel_patterns_even+si]
         jz      .l1
-        or      dl,0x20
+        or      dl,0x20                         ;color for when "even" pixel is on
 
 .l1:
         test    al,[pixel_patterns_odd+si]
         jz      .l2
-        or      dl,0x03
+        or      dl,0x03                         ;color for when "odd" pixel is on
 
 .l2:
         mov     ax,cx                           ;get next address
-        dec     ax                              ;minus 8, since cx starts at 8
+        dec     ax                              ;minus 1, since cx starts at 8
         shl     ax,1                            ;points to correct next address
         mov     di,ax                           ;use di as indexer. can't use ax
         mov     di,[pixel_addresses + di]
 
         mov     byte [es:di],dl
 
-        inc     bx
-        loop    .l3
+        inc     bx                              ;pointer to next char def in
+                                                ; charset
+        loop    .repeat                         ;do it 8 times (8 pixels high)
 
-        mov     ax,[pixel_idx]
+
+        mov     ax,[pixel_idx]                  ;pixel_idx++
         inc     ax
-        mov     [pixel_idx],ax
-        cmp     ax,4
+        cmp     ax,4                            ;if pixel_idx == 4, reset pixel_idx
         jne     .end
 
-        sub     ax,ax
-        mov     [pixel_idx],ax
-        inc     word [char_idx]
+        sub     ax,ax                           ;reset pixel_idx and
+        inc     word [char_idx]                 ; ind char_idx
 
 .end:
+        mov     [pixel_idx],ax
+
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -259,7 +267,8 @@ image:
        incbin "image160100.bin"
 
 charset:
-        incbin "tandy_1000_hx_charset-charset.bin"
+        ;incbin "tandy_1000_hx_charset-charset.bin"
+        incbin "c64_charset-charset.bin"
 
 scroll_text:
         db 'esto es una prueba de scroll, veremos que pasa... esto compila...'
@@ -274,27 +283,28 @@ pixel_idx:
         dw 0                                    ;pointer to the next pixel to be
                                                 ; used for the scroll. belongs
                                                 ; to the char
-pixel_patterns_even:
-        db 0b1000_0000
+
+pixel_patterns_even:                            ;mask for the charset char. these
+        db 0b1000_0000                          ; are the "even" values for the mask
         db 0b0010_0000
         db 0b0000_1000
         db 0b0000_0010
 
-pixel_patterns_odd:
-        db 0b0100_0000
+pixel_patterns_odd:                             ;mask for the charset char. these
+        db 0b0100_0000                          ; are the "odd" values for the mask
         db 0b0001_0000
         db 0b0000_0100
         db 0b0000_0001
 
-pixel_addresses:                                ;where should the next pixel
-        dw 100*160-1
-        dw 99*160-1
-        dw 98*160-1
-        dw 97*160-1
-        dw 96*160-1
-        dw 95*160-1
-        dw 94*160-1
-        dw 93*160-1                             ; should be put. one per line
+pixel_addresses:                                ;addresses for the right-most
+        dw 100*160-1                            ; column for the 8 pixels. they
+        dw  99*160-1                            ; are inverted since it uses cx
+        dw  98*160-1                            ; as the indexer
+        dw  97*160-1
+        dw  96*160-1
+        dw  95*160-1
+        dw  94*160-1
+        dw  93*160-1
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
