@@ -19,6 +19,8 @@ cpu     8086
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .text
 ..start:
+        call    wait_key
+
         mov     ax,data                         ;init segments
         mov     ds,ax                           ; DS=ES: same segment
         mov     es,ax                           ; SS: stack
@@ -31,6 +33,8 @@ section .text
         call    init_video
 
         call    paint_screen
+
+        call    do_scroll
 
         call    wait_key
 
@@ -135,6 +139,112 @@ wait_key:
         int     0x16                            ;Call BIOS keyboard interrupt
         ret
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+do_scroll:
+        mov     ax,0xb800                       ;init some variables to be used
+        mov     es,ax                           ; during the scroll
+        cld                                     ;fordward copy for the scroll
+
+.l0:
+        call    wait_vert_retrace
+        call    scroll_pixels
+        call    set_initial_pixels
+
+        jmp .l0
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+scroll_pixels:
+        push    ds
+
+        push    es
+        pop     ds
+
+        mov     cx,8*80                         ;scroll 8 lines
+        mov     si,92*160+2                     ;source: last char of screen
+        mov     di,92*160                       ;dest: last char of screen - 1
+
+        rep movsw                               ;do the copy
+
+        pop     ds
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+set_initial_pixels:
+        int     3
+
+        mov     bx,[char_idx]                   ;get char index
+        mov     al,[scroll_text + bx]           ;get char to print
+        or      al,al                           ;al is 0? (end of scroll text)
+        jne     .l0
+
+        sub     ax,ax
+        mov     [char_idx],ax
+        mov     al,[scroll_text]
+
+.l0:
+        sub     bx,bx
+        mov     bl,al                           ;move char to bx
+        shl     bx,1                            ;bx *= 8. since each char takes
+        shl     bx,1                            ; 8 bytes.
+        shl     bx,1
+
+        mov     cx,8                            ;do this 8 times: one per pixel
+
+.l3:
+        mov     al,[charset + bx]               ;get charset definition of char
+
+        sub     dx,dx
+        mov     si,[pixel_idx]
+        test    al,[pixel_patterns_even+si]
+        jz      .l1
+        or      dl,0x20
+
+.l1:
+        test    al,[pixel_patterns_odd+si]
+        jz      .l2
+        or      dl,0x03
+
+.l2:
+        mov     ax,cx                           ;get next address
+        dec     ax                              ;minus 8, since cx starts at 8
+        shl     ax,1                            ;points to correct next address
+        mov     di,ax                           ;use di as indexer. can't use ax
+        mov     di,[pixel_addresses + di]
+
+        mov     byte [es:di],dl
+
+        inc     bx
+        loop    .l3
+
+        mov     ax,[pixel_idx]
+        inc     ax
+        mov     [pixel_idx],ax
+        cmp     ax,4
+        jne     .end
+
+        sub     ax,ax
+        mov     [pixel_idx],ax
+        inc     word [char_idx]
+
+.end:
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+wait_vert_retrace:
+        mov     dx,0x3da
+
+.wait_retrace_finish:                           ;if retrace already started, wait
+        in      al,dx                           ; until it finishes
+        test    al,8
+        jnz     .wait_retrace_finish
+
+.wait_retrace_start:
+        in      al,dx                           ;wait until start of the retrace
+        test    al,8
+        jz      .wait_retrace_start
+
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; DATA
@@ -146,8 +256,45 @@ crt6845_3d4_160_100:
         db 0x71, 0x50, 0x5a, 0x0a, 0x7f, 0x06, 0x64, 0x70, 0x02, 0x01, 0x06, 0x07, 0x00, 0x00, 0x00, 0x00       ; 160x100
 
 image:
-       incbin "image160100.bin" 
+       incbin "image160100.bin"
 
+charset:
+        incbin "tandy_1000_hx_charset-charset.bin"
+
+scroll_text:
+        db 'esto es una prueba de scroll, veremos que pasa... esto compila...'
+        db 'ojala que si... funciona, yo que se, la vida es jodida... probando'
+        db ' MAYUSCULAS, minusculas, y otras cosas raras... 0123456789 !@#$!@#$%^&&'
+        db '       CHAU ......    '
+        db 0
+char_idx:
+        dw 0                                    ;pointer to the next char to be
+                                                ; used for the scroll
+pixel_idx:
+        dw 0                                    ;pointer to the next pixel to be
+                                                ; used for the scroll. belongs
+                                                ; to the char
+pixel_patterns_even:
+        db 0b1000_0000
+        db 0b0010_0000
+        db 0b0000_1000
+        db 0b0000_0010
+
+pixel_patterns_odd:
+        db 0b0100_0000
+        db 0b0001_0000
+        db 0b0000_0100
+        db 0b0000_0001
+
+pixel_addresses:                                ;where should the next pixel
+        dw 100*160-1
+        dw 99*160-1
+        dw 98*160-1
+        dw 97*160-1
+        dw 96*160-1
+        dw 95*160-1
+        dw 94*160-1
+        dw 93*160-1                             ; should be put. one per line
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
