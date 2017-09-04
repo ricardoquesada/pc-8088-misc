@@ -157,17 +157,17 @@ do_scroll:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 anim_palette:
         int     3
-        dec     byte [palette_delay]
-        jz      .anim
-        ret
-
-.anim
-        mov     byte [palette_delay],16
+;        dec     byte [palette_delay]
+;        jz      .anim
+;        ret
+;
+;.anim
+;        mov     byte [palette_delay],16
 
         sub     bh,bh
         mov     ax,palette_data
         mov     bl,[palette_idx]
-        and     bl,0x0f
+        and     bl,0x07
         add     ax,bx
         inc     byte [palette_idx]
 
