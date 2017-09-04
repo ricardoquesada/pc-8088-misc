@@ -53,6 +53,8 @@ test_border:
         mov     al,0b0001_0100                  ;enable border color, enable 16 colors
         out     dx,al
 
+        call    wait_key
+
 .repeat:
         call    wait_vert_retrace
 
@@ -153,7 +155,7 @@ set_charset:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 anim_border_color:
         int     3
-        mov     cx,200                          ;200 scan lines
+        mov     cx,260                          ;260 scan lines
 
         mov     dx,0x3da
 
