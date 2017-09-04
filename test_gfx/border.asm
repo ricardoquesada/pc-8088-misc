@@ -132,7 +132,6 @@ update_palette:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 set_charset:
-        int     3
         push    ds
         mov     dx,ds
 
@@ -153,6 +152,7 @@ set_charset:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 anim_border_color:
+        int     3
         mov     cx,200                          ;200 scan lines
 
         mov     dx,0x3da
@@ -175,8 +175,11 @@ anim_border_color:
 
         add     dx,4
         mov     al,[border_color]               ;select color for border
+        and     al,0x0f
         out     dx,al                           ;change border
         inc     byte [border_color]
+
+        sub     dx,4
 
         loop    .repeat
 
