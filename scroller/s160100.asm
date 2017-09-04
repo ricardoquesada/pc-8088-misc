@@ -1,11 +1,5 @@
-; Demonstration of how to write an entire .EXE format program as a .OBJ
-; file to be linked. Tested with the VAL free linker.
-; To build:
-;    nasm -fobj objexe.asm
-;    val objexe.obj,objexe.exe;
-; To test:
-;    objexe
-; (should print `hello, world')
+; screoll test
+; riq/pvm
 
 bits    16
 cpu     8086

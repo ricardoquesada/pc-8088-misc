@@ -1,11 +1,5 @@
-; Demonstration of how to write an entire .EXE format program as a .OBJ
-; file to be linked. Tested with the VAL free linker.
-; To build:
-;    nasm -fobj objexe.asm
-;    val objexe.obj,objexe.exe;
-; To test:
-;    objexe
-; (should print `hello, world')
+; border test
+; riq/pvm
 
 bits    16
 cpu     8086
@@ -32,8 +26,6 @@ section .text
 
         call    test_border
 
-        call    wait_key
-
         mov     ax,0x0002                       ;text mode 80x25
         int     0x10
 
@@ -53,15 +45,11 @@ test_border:
         mov     al,0b0001_0100                  ;enable border color, enable 16 colors
         out     dx,al
 
-        call    wait_key
-
+        mov     cx,32000                        ;wait 2 seconds (262 * 60 * 2)
 .repeat:
-
         call    anim_border_color
 
-        in      al,0x60
-        cmp     al,1
-        jne     .repeat
+        loop    .repeat
 
         ret
 
@@ -78,22 +66,28 @@ init_screen:
 
         mov     cx,C64_SCREEN_SIZE
         mov     si,c64_screen
-        mov     dx,0x0100                       ;row=1, column=0
+
+        mov     dx,0x0000                       ;row=0, column=0
+
 
 .repeat:
         mov     ah,2                            ;set cursor position
-        mov     bh,0                            ;page 0
+        mov     bh,0                            ;page 0 (ignored in gfx mode though)
         int     0x10
 
-        inc     dl
-        cmp     dl,40                           ;reached column 40
-        jb      .l0
-        inc     dh                              ;inc row
-        mov     dl,0                            ;reset column
-
-.l0:
-        mov     ah,0x0a                         ;write char
         lodsb                                   ;char to write
+        cmp     al,0                            ;anim char
+        je      .do_anim_cursor
+        cmp     al,1
+        je      .do_delay
+        cmp     al,`\n`
+        je      .do_enter
+        cmp     al,2
+        je      .do_enable_user_input
+        cmp     al,3
+        je      .do_disable_user_input
+
+        mov     ah,0x0a                         ;write char
         mov     bh,0                            ;page to write to
         mov     bl,9                            ;color: light blue
 
@@ -103,10 +97,99 @@ init_screen:
         mov     cx,1                            ;number of times to write to
         int     0x10
 
+        mov     al,[delay_after_char]
+        cmp     al,1
+        jne     .l1
+        call    wait_vert_retrace
+
+.l1:
         pop     cx
         pop     dx
 
+        inc     dl                              ;cursor.x +=1
+
+
+.l0:
         loop    .repeat
+
+        ret
+
+.do_anim_cursor:
+        call    do_anim_cursor
+        jmp     .l0
+
+.do_delay:
+        push    cx
+        mov     cx,60
+        call    do_delay
+        pop     cx
+        jmp     .l0
+
+.do_enter:
+        int     3
+        inc     dh                              ;inc row
+        mov     dl,0                            ;reset column
+        jmp     .l0
+
+.do_enable_user_input:
+        mov     byte [delay_after_char],1
+        jmp     .l0
+
+.do_disable_user_input:
+        mov     byte [delay_after_char],0
+        jmp     .l0
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+do_anim_cursor:
+        push    cx
+        push    dx
+
+        mov     cx,4
+.repeat:
+        push    cx
+        mov     al,219                          ;block char
+        mov     ah,0x0a                         ;write char
+        mov     bh,0                            ;page to write to
+        mov     bl,9                            ;color: light blue
+        mov     cx,1                            ;only once
+        int     0x10                            ;write char
+        pop     cx
+
+        push    cx
+        mov     cx,20
+        call    do_delay
+        pop     cx
+
+        push    cx
+        mov     al,32                           ;empty char
+        mov     ah,0x0a                         ;write char
+        mov     bh,0                            ;page to write to
+        mov     bl,9                            ;color: light blue
+        mov     cx,1                            ;only once
+        int     0x10                            ;write char
+        pop     cx
+
+        push    cx
+        mov     cx,20
+        call    do_delay
+        pop     cx
+
+        loop    .repeat
+
+        pop     dx
+        pop     cx
+
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; On entry:
+;       cx:     number of vertical retraces to wait
+do_delay:
+        push    dx
+.repeat:
+        call    wait_vert_retrace
+        loop    .repeat
+        pop     dx
 
         ret
 
@@ -231,13 +314,50 @@ section .data
 border_color:
         db 0
 
+delay_after_char:
+        db 0
+
 c64_screen:
            ;0123456789012345678901234567890123456789
-        db '    **** COMMODORE 64 BASIC V2 ****     '
-        db ' 64K RAM SYSTEM  38911 BASIC BYTES FREE '
-        db '                                        '
-        db 'READY.                                  '
+        db `\n`
+        db `    **** COMMODORE 64 BASIC V2 ****\n`
+        db ` 64K RAM SYSTEM  38911 BASIC BYTES FREE\n`
+        db `\n`
+        db `READY.\n`
+        db 0                                            ; pause / animate cursor
+        db 2                                            ;turn on user input
+        db `LOAD"$",8\n\n`
+        db 3                                            ;turn off user input
+        db 1                                            ; pause / animate cursor
+        db `SEARCHING FOR $\n`
+        db 1                                            ; pause
+        db `LOADING\n`
+        db 1
+        db `READY.\n`
+        db 0                                            ; pause / animate cursor
+        db 2                                            ;turn on user input
+        db `LIST\n\n`
+        db 3                                            ;turn off user input
+        db `0 "1234567890123456" 96 2A\n`
+        db `132  "C64OMAGE"         PRG\n`
+        db `532 BLOCKS FREE.\n`
+        db `READY.\n`
+        db 0                                            ; pause / animate cursor
+        db 2                                            ;turn on user input
+        db `LOAD"*",8,1\n\n`
+        db 3                                            ;turn off user input
+        db `SEARCHING FOR *\n`
+        db 1
+        db `LOADING`,1,1,1,1
+        db `               (10 minutes later)\n`
+        db 1,1
+        db `READY.\n`
+        db 0
+        db 2                                            ;turn on user input
+        db `RUN\n`
+        db 3                                            ;turn off user input
 C64_SCREEN_SIZE equ $ - c64_screen
+
 
 c64_charset:
         incbin 'c64_charset-charset.bin'
