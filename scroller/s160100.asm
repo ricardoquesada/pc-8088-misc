@@ -198,30 +198,37 @@ set_initial_pixels:
         mov     cx,8                            ;do this 8 times: one per pixel
 
 .repeat:
-        mov     al,[charset + bx]               ;get charset definition of char
-
+        mov     al,[charset + bx]               ;get charset definition of char.
+                                                ; bx will get increased by one
+                                                ; in each loop
         sub     dx,dx
-        mov     si,[pixel_idx]
+        mov     si,[pixel_idx]                  ;si goes from 0-3
+
+        push    bx                              ;reusing bx for base indexed
+
+        mov     bx,cx
+
         test    al,[pixel_patterns_even+si]
         jz      .l1
-        or      dl,0x20                         ;color for when "even" pixel is on
+        or      dl,[colors_even+si+bx]          ;color for when "even" pixel is on
 
 .l1:
         test    al,[pixel_patterns_odd+si]
         jz      .l2
-        or      dl,0x03                         ;color for when "odd" pixel is on
+        or      dl,[colors_odd+si+bx]           ;color for when "odd" pixel is on
 
 .l2:
-        mov     ax,cx                           ;get next address
-        dec     ax                              ;minus 1, since cx starts at 8
-        shl     ax,1                            ;points to correct next address
-        mov     di,ax                           ;use di as indexer. can't use ax
-        mov     di,[pixel_addresses + di]
+        mov     bx,cx                           ;get next address
+        dec     bx                              ;minus 1, since cx starts at 8
+        shl     bx,1                            ;points to correct next address
+        mov     di,[pixel_addresses + bx]
 
         mov     byte [es:di],dl
 
-        inc     bx                              ;pointer to next char def in
-                                                ; charset
+        pop     bx                              ;restore bx. used for [chardef + bx]
+
+        inc     bx                              ;pointer to next char def in charset
+
         loop    .repeat                         ;do it 8 times (8 pixels high)
 
 
@@ -305,6 +312,16 @@ pixel_addresses:                                ;addresses for the right-most
         dw  95*160-1
         dw  94*160-1
         dw  93*160-1
+
+colors_even:                                    ;colors are indexed by [row+col]
+        db 0x40,0x40,0x40,0x50                  ; row goes from 0-7
+        db 0x50,0x50,0xc0,0xc0                  ; col goes from 0-3
+        db 0xc0,0xe0,0xe0,0xe0
+
+colors_odd:                                     ;colros are indexed by [row+col]
+        db 0x04,0x04,0x04,0x05                  ; row goes from 0-7
+        db 0x05,0x05,0x0c,0x0c                  ; col goes from 0-3
+        db 0x0c,0x0e,0x0e,0x0e
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
