@@ -28,6 +28,8 @@ section .text
         mov     sp,stacktop
         sti
 
+        call    wait_key
+
         call    test_border
 
         call    wait_key
@@ -41,8 +43,7 @@ section .text
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 test_border:
-        mov     ax,0x0009                       ;320x200 16 colors
-        int     0x10
+        call    init_screen
 
         mov     dx,0x3da
         mov     al,3                            ;select CRT mode control
@@ -60,13 +61,74 @@ test_border:
         out     dx,al
 
         add     dx,4                            ;change border color
-        mov     al,[border_color]
+        mov     al,9                            ;light blue
         out     dx,al
-        inc     byte [border_color]
 
         in      al,0x60
-        cmp     al,1
-        jne     .repeat
+        je      .repeat
+
+        ret
+
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+init_screen:
+        mov     ax,0x0009                       ;320x200 16 colors
+        int     0x10
+
+        call    set_charset
+
+        mov     cx,C64_SCREEN_SIZE
+        mov     si,c64_screen
+        mov     dx,0x0100                       ;row=1, column=0
+
+.repeat:
+        mov     ah,2                            ;set cursor position
+        mov     bh,0                            ;page 0
+        int     0x10
+
+        inc     dl
+        cmp     dl,40                           ;reached column 40
+        jb      .l0
+        inc     dh                              ;inc row
+        mov     dl,0                            ;reset column
+
+.l0:
+        mov     ah,0x0a                         ;write char
+        lodsb                                   ;char to write
+        mov     bh,0                            ;page to write to
+        mov     bl,1                            ;color
+
+        push    dx
+        push    cx
+
+        mov     cx,1                            ;number of times to write to
+        int     0x10
+
+        pop     cx
+        pop     dx
+
+        loop    .repeat
+
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+set_charset:
+        int     3
+        push    ds
+        mov     dx,ds
+
+        sub     ax,ax
+        mov     ds,ax
+
+        mov     ax,c64_charset                  ;charset 0-127 for graphics mode
+        mov     [0x44 * 4 + 0],ax
+        mov     [0x44 * 4 + 2],dx
+
+        mov     ax,c64_charset + 128 * 8        ;charset 128-255 for graphics mode
+        mov     [0x1f * 4 + 0],ax
+        mov     [0x1f * 4 + 2],dx
+
+        pop     ds
 
         ret
 
@@ -129,6 +191,16 @@ section .data
 border_color:
         db 0
 
+c64_screen:
+           ;0123456789012345678901234567890123456789
+        db '    **** COMMODORE 64 BASIC V2 ****     '
+        db ' 64K RAM SYSTEM  38911 BASIC BYTES FREE '
+        db '                                        '
+        db 'READY.                                  '
+C64_SCREEN_SIZE equ $ - c64_screen
+
+c64_charset:
+        incbin 'c64_charset-charset.bin'
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
