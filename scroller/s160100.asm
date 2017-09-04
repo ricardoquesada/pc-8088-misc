@@ -147,10 +147,42 @@ do_scroll:
 
 .l0:
         call    wait_vert_retrace
+        call    anim_palette
         call    set_initial_pixels
         call    scroll_pixels
 
         jmp .l0
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+anim_palette:
+        int     3
+        sub     bh,bh
+        mov     ax,palette_value
+        mov     bl,[palette_idx]
+        and     bl,0x0f
+        add     ax,bx
+        inc     byte [palette_idx]
+
+        mov     si,ax
+
+        mov     bl,0x10                         ;palette register
+        mov     cx,0x10                         ;number of colors
+        mov     dx,0x3da
+
+.repeat:
+        mov     al,bl
+        out     dx,al                           ;select palette register
+
+        add     dx,4
+        lodsb
+        out     dx,al                           ;palette color
+
+        inc     bl
+        sub     dx,4
+
+        loop    .repeat
+
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -322,6 +354,19 @@ colors_odd:                                     ;colros are indexed by [row+col]
         db 0x04,0x04,0x04,0x05                  ; row goes from 0-7
         db 0x05,0x05,0x0c,0x0c                  ; col goes from 0-3
         db 0x0c,0x0e,0x0e,0x0e
+
+palette_value:
+        db 0x00,0x01,0x02,0x03
+        db 0x04,0x05,0x06,0x07
+        db 0x08,0x09,0x0a,0x0b
+        db 0x0c,0x0d,0x0e,0x0f
+
+        db 0x00,0x01,0x02,0x03
+        db 0x04,0x05,0x06,0x07
+        db 0x08,0x09,0x0a,0x0b
+        db 0x0c,0x0d,0x0e,0x0f
+palette_idx:
+        db 0
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
