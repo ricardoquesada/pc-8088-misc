@@ -45,7 +45,7 @@ test_border:
         mov     al,0b0001_0100                  ;enable border color, enable 16 colors
         out     dx,al
 
-        mov     cx,32000                        ;wait 2 seconds (262 * 60 * 2)
+        mov     cx,262 * 60 * 3                 ;wait 3 seconds (262 * 60 * 3)
 .repeat:
         call    anim_border_color
 
@@ -338,7 +338,10 @@ c64_screen:
         db 2                                            ;turn on user input
         db `LIST\n\n`
         db 3                                            ;turn off user input
-        db `0 "1234567890123456" 96 2A\n`
+        db '0 '
+        db 162,208,214,205,160,195,182,180,207,205,193,199,197,160,160,160,160,162         ;inverted chars
+        db 160,185,182,160,178,193
+        db `\n`
         db `132  "C64OMAGE"         PRG\n`
         db `532 BLOCKS FREE.\n`
         db `READY.\n`
@@ -348,7 +351,7 @@ c64_screen:
         db 3                                            ;turn off user input
         db `SEARCHING FOR *\n`
         db 1
-        db `LOADING`,1,1,1,1
+        db `LOADING`,1,1,1,1,1
         db `               (10 minutes later)\n`
         db 1,1
         db `READY.\n`
