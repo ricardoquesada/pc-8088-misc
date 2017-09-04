@@ -155,13 +155,6 @@ set_charset:
 anim_border_color:
         mov     dx,0x3da
 
-.repeat:
-
-.wait_retrace_finish:                           ;if horizontal retrace already started, wait
-        in      al,dx                           ; until it finishes
-        test    al,1
-        jnz     .wait_retrace_finish
-
 .wait_retrace_start:                            ;wait for horizontal retrace start
         in      al,dx
         test    al,1
