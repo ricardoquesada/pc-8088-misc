@@ -56,7 +56,6 @@ test_border:
         call    wait_key
 
 .repeat:
-        call    wait_vert_retrace
 
         call    anim_border_color
 
@@ -154,9 +153,6 @@ set_charset:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 anim_border_color:
-        int     3
-        mov     cx,260                          ;260 scan lines
-
         mov     dx,0x3da
 
 .repeat:
@@ -180,10 +176,6 @@ anim_border_color:
         and     al,0x0f
         out     dx,al                           ;change border
         inc     byte [border_color]
-
-        sub     dx,4
-
-        loop    .repeat
 
         ret
 
