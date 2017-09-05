@@ -95,17 +95,36 @@ set_charset:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 paint_screen:
 
+        mov     cx,1000
+
         mov     dx,0x0000                       ;row=0, column=0
+        mov     al,0
+.repeat:
         mov     ah,2                            ;set cursor position
         mov     bh,0                            ;page 0 (ignored in gfx mode though)
         int     0x10
 
+        inc     dl
+        cmp     dl,40
+        jne     .l0
+
+        sub     dl,dl
+        inc     dh
+
+.l0:
+        push    cx
+
         mov     ah,0x0a                         ;write char
-        mov     al,'A'                          ;write A char
         mov     bh,0                            ;page to write to
         mov     bl,9                            ;color: light blue
-        mov     cx,1000                         ;number of times to write to
+        mov     cx,1                            ;number of times to write to
         int     0x10
+
+        pop     cx
+
+        inc     al
+
+        loop    .repeat
 
         ret
 
@@ -147,7 +166,6 @@ wait_key:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 do_scroll:
         int     3
-        call    wait_vert_retrace
 
         push    ds
 
@@ -156,17 +174,36 @@ do_scroll:
 
         cld
 
+.repeat:
+        call    wait_vert_retrace
+
         %assign i 0
-        %rep    16
+        %rep    4
 
-                mov     cx,39                   ;scroll 1 line of 80 chars
-                mov     si,(8+i)*160+1            ;source: last char of screen
-                mov     di,(8+i)*160              ;dest: last char of screen - 1
+                mov     cx,159                  ;scroll 1 line of 80 chars
+                mov     si,i*160+1            ;source: last char of screen
+                mov     di,i*160              ;dest: last char of screen - 1
+                rep movsb                       ;do the copy
 
-                rep movsw                       ;do the copy
+                mov     cx,159                   ;scroll 1 line of 80 chars
+                mov     si,8192+i*160+1            ;source: last char of screen
+                mov     di,8192+i*160              ;dest: last char of screen - 1
+                rep movsb                       ;do the copy
+
+                mov     cx,159                   ;scroll 1 line of 80 chars
+                mov     si,16384+i*160+1            ;source: last char of screen
+                mov     di,16384+i*160              ;dest: last char of screen - 1
+                rep movsb                       ;do the copy
+
+                mov     cx,159                   ;scroll 1 line of 80 chars
+                mov     si,24576+i*160+1            ;source: last char of screen
+                mov     di,24576+i*160              ;dest: last char of screen - 1
+                rep movsb                       ;do the copy
 
         %assign i i+1
         %endrep
+        
+        jmp     .repeat
 
         pop     ds
 
