@@ -5,7 +5,7 @@ ASMFLAGS = -fobj -Wall
 LD = alink
 LDFLAGS = -oEXE -m
 
-TARGETS = s160100
+TARGETS = s160100 s320200
 default: $(TARGETS)
 all: default
 
@@ -17,6 +17,11 @@ clean:
 	-rm -f $(TARGET)
 
 s160100:
-	$(ASM) $(ASMFLAGS) s160100.asm -o s160100.o
-	$(LD) s160100.o $(LDFLAGS) -o ../bin/s160100.exe
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c s160100.exe
+	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
+	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
+	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c $@.exe
+
+s320200:
+	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
+	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
+	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c $@.exe
