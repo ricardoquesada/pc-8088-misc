@@ -174,30 +174,32 @@ do_scroll:
 
         cld
 
+OFFSET_Y        equ     22*2*160
+
 .repeat:
         call    wait_vert_retrace
 
         %assign i 0
-        %rep    4
+        %rep    6
 
                 mov     cx,159                  ;scroll 1 line of 80 chars
-                mov     si,i*160+1            ;source: last char of screen
-                mov     di,i*160              ;dest: last char of screen - 1
+                mov     si,OFFSET_Y+i*160+1            ;source: last char of screen
+                mov     di,OFFSET_Y+i*160              ;dest: last char of screen - 1
                 rep movsb                       ;do the copy
 
                 mov     cx,159                   ;scroll 1 line of 80 chars
-                mov     si,8192+i*160+1            ;source: last char of screen
-                mov     di,8192+i*160              ;dest: last char of screen - 1
+                mov     si,OFFSET_Y+8192+i*160+1            ;source: last char of screen
+                mov     di,OFFSET_Y+8192+i*160              ;dest: last char of screen - 1
                 rep movsb                       ;do the copy
 
                 mov     cx,159                   ;scroll 1 line of 80 chars
-                mov     si,16384+i*160+1            ;source: last char of screen
-                mov     di,16384+i*160              ;dest: last char of screen - 1
+                mov     si,OFFSET_Y+16384+i*160+1            ;source: last char of screen
+                mov     di,OFFSET_Y+16384+i*160              ;dest: last char of screen - 1
                 rep movsb                       ;do the copy
 
                 mov     cx,159                   ;scroll 1 line of 80 chars
-                mov     si,24576+i*160+1            ;source: last char of screen
-                mov     di,24576+i*160              ;dest: last char of screen - 1
+                mov     si,OFFSET_Y+24576+i*160+1            ;source: last char of screen
+                mov     di,OFFSET_Y+24576+i*160              ;dest: last char of screen - 1
                 rep movsb                       ;do the copy
 
         %assign i i+1
