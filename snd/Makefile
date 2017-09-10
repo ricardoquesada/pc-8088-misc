@@ -5,18 +5,22 @@ ASMFLAGS = -fobj -Wall
 LD = alink
 LDFLAGS = -oEXE -m
 
-TARGETS = tandysnd
+TARGETS = tandysnd vgmplayer
 default: $(TARGETS)
 all: default
 
-.PRECIOUS: $(TARGET) $(OBJECTS)
+.PRECIOUS: $(TARGETS) $(OBJECTS)
 
 clean:
 	echo "Cleaning..."
 	-rm -f *.o
-	-rm -f $(TARGET)
 
 tandysnd:
 	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
 	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
 	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c "$@.exe zelda2.snd"
+
+vgmplayer:
+	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
+	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
+	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c "vgmpla~1.exe"
