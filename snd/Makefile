@@ -5,7 +5,7 @@ ASMFLAGS = -fobj -Wall
 LD = alink
 LDFLAGS = -oEXE -m
 
-TARGETS = tandysnd vgmplayer
+TARGETS = tandysnd vgmplayer pvmplayer
 default: $(TARGETS)
 all: default
 
@@ -24,3 +24,8 @@ vgmplayer:
 	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
 	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
 	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c "vgmpla~1.exe"
+
+pvmplayer:
+	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
+	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
+	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c "pvmpla~1.exe"

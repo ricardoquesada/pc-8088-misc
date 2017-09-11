@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+# -----------------------------------------------------------------------------
+# converts VGM files to a more compact file format (optimized format for Tandy)
+# -----------------------------------------------------------------------------
+"""
+Tool to convert VGM (Video Game Music) to PVM (Player VGM Music)
+It is the same, but smaller, around 30% smaller.
+
+For the moment, the only supported chip is SN76489 (Sega Master System in
+Deflemask).
+"""
+import argparse
+import sys
+import struct
+
+
+__docformat__ = 'restructuredtext'
+
+class ToPVM:
+    """The class that does all the conversions"""
+
+    # 3 MSB bits are designed for commands
+    # 5 LSB bits are for data for the command
+    DATA =          0b00000000      # 000xxxxx (xxxxxx = len of data)
+    DATA_EXTRA =    0b00100000      # 001----- next byte will have the data len
+    DELAY =         0b01000000      # 010xxxxx (xxxxxx = cycles to delay)
+    DELAY_EXTRA =   0b01100000      # 011----- next byte will have the delay
+    END =           0b10000000      # 100-----
+
+    def __init__(self, vgm_file, output_fd):
+        self._vgm_file = vgm_file
+        self._output_fd = output_fd
+
+        self._output_data = bytearray()
+        self._current_port_data = bytearray()
+
+
+    def run(self):
+        """Execute the conversor."""
+        with open(self._vgm_file, 'rb') as f:
+            # FIXME: Assuming VGM version is 1.50 (64 bytes of header)
+            header = bytearray(f.read(0x40))
+
+            if header[:4].decode('utf-8') != 'Vgm ':
+                raise Exception('Not a valid VGM file')
+
+            vgm_version = struct.unpack_from("<I", header, 8)[0]
+            print('VGM version: %d' % vgm_version)
+
+            # unpack little endian unsigned integer (4 bytes)
+            file_len = struct.unpack_from("<I", header, 4)[0]
+
+            print('File len: %d' % (file_len + 4))
+            data = bytearray(f.read(file_len + 4 - 0x40))
+
+            i = 0
+            print('max len: %d' % len(data))
+            while i < len(data):
+                if data[i] == 0x50:
+                    self.add_port_data(data[i+1])
+                    i = i+2
+                elif data[i] == 0x61:
+                    # unpack little endian unsigned short
+                    delay = struct.unpack_from("<H", data, i+1)[0]
+                    self.add_n_delay(delay)
+                    i = i+3
+                elif data[i] == 0x62:
+                    self.add_single_delay()
+                    i = i+1
+                elif data[i] == 0x66:
+                    self.add_end()
+                    break
+                else:
+                    raise Exception('Unknown value: data[0x%x] = 0x%x' % (i, data[i]))
+
+        self.prepend_header()
+
+        self._output_fd.buffer.write(self._output_data)
+
+    def prepend_header(self):
+        HEADER_LEN = 16
+        VERSION_LO = 0
+        VERSION_HI = 1
+        header = bytearray()
+
+        # signature: 4 bytes
+        header += 'PVM '.encode('utf-8')
+
+        # total len: 4 bytes
+        l = len(self._output_data) + HEADER_LEN
+        total_len = struct.pack("<I",l)
+        header += total_len
+
+        # version: 2 bytes. minor, major
+        header.append(VERSION_LO)
+        header.append(VERSION_HI)
+
+        # flags: 2 bytes
+        # which procesor is supported
+        #  either PAL/NTSC
+        #  clock
+        header.append(0)
+        header.append(0)
+
+        # reserved: 4 bytes
+        for i in range(4):
+            header.append(0)
+
+        self._output_data = header + self._output_data
+
+    def add_port_data(self, byte_data):
+        self._current_port_data.append(byte_data)
+
+    def add_single_delay(self):
+        self.flush_current_port_data()
+        self._output_data.append(self.DELAY | 1)
+
+    def add_n_delay(self, delay):
+        delay_val = delay // 0x02df
+        if delay_val == 0:
+            return
+
+        self.flush_current_port_data()
+
+        if delay_val > 31:
+            self._output_data.append(self.DELAY_EXTRA)
+            self._output_data.append(delay_val)
+        else:
+            self._output_data.append(self.DELAY | delay_val)
+
+    def add_end(self):
+        self._output_data.append(self.END)
+
+    def flush_current_port_data(self):
+        l = len(self._current_port_data)
+        if l == 0:
+            return
+
+        if l > 31:
+            self._output_data.append(self.DATA_EXTRA)
+            self._output_data.append(l)
+        else:
+            self._output_data.append(self.DATA | l)
+        self._output_data = self._output_data + self._current_port_data
+        self._current_port_data = bytearray()
+
+
+def parse_args():
+    """Parse the arguments."""
+    parser = argparse.ArgumentParser(
+        description='Converts VGM to PVM',
+        epilog="""Example:
+
+$ %(prog)s -o my_music.pvm my_music.vgm
+""")
+    parser.add_argument('filename', metavar='<filename>',
+                        help='file to convert')
+    parser.add_argument('-o', '--output-file', metavar='<filename>',
+                        help='output file. Default: stdout')
+
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    """Main function."""
+    args = parse_args()
+    if args.output_file is not None:
+        with open(args.output_file, 'w+') as fd:
+            ToPVM(args.filename, fd).run()
+    else:
+        ToPVM(args.filename, sys.stdout).run()
+
+if __name__ == "__main__":
+    main()
