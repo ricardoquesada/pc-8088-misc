@@ -8,7 +8,7 @@ bits    16
 cpu     8086
 
 ; Timing settings:
-PIT_divider     equ (262*76)                    ;262 lines * 76 cycles each
+PIT_divider     equ (262*76)                    ;262 lines * 76 PIT cycles each
                                                 ; (14318180 / 12) / 19912 = 59.9227 Hz
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -30,8 +30,8 @@ main:
         call    print_msg
 
         call    parse_cmd_line                  ;es must remain intact until this
-
         call    load_song
+        call    verify_song
 
         call    music_init                      ;must be called before setup_irq
         call    setup_irq
@@ -91,10 +91,29 @@ parse_cmd_line:
 
 .error:
         mov     dx,msg_help
-        call    print_msg
-        mov     ax,4c01h
-        int     21h
+        jmp     exit_with_error
 
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+verify_song:
+        int     3
+        push    ds
+
+        mov     ax,pvmsong
+        mov     ds,ax
+
+        cmp     word [0],'PV'                   ;PV
+        jne     .error
+        cmp     word [2],'M '                   ;'M '
+        jne     .error
+
+        pop     ds
+        ret
+
+.error
+        pop     ds
+
+        mov     dx,msg_error_fmt
+        jmp     exit_with_error
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 load_song:
@@ -104,7 +123,7 @@ load_song:
         call    print_msg
         mov     dx,filename
         call    print_msg
-        mov     cx,msg_enter
+        mov     dx,msg_enter
         call    print_msg
 
         mov     ah,3dh                          ;open file
@@ -130,11 +149,17 @@ load_song:
         ret
 
 .error:
-        mov     dx,msg_error_load               ;print error message and exit
-        call    print_msg
-
         pop     ds
 
+        mov     dx,msg_error_load               ;print error message and exit
+        jmp     exit_with_error
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+; in:
+;       dx = pointer to error message. '$' terminated
+
+exit_with_error:
+        call    print_msg
         mov     ax,4c02h
         int     21h
 
@@ -235,6 +260,13 @@ setup_PIT:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 sound_cleanup:
         ; FIXME: do the cleanup
+        mov     si,volume_0
+        mov     cx,8
+.repeat:
+        lodsb
+        out     0c0h,al
+        loop    .repeat
+
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -376,9 +408,10 @@ section .data data
 msg_title:      db 'pvmplayer v0.1 - riq/pvm',13,10,'$'
 msg_help:       db 'usage:',13,10
                 db '   pvmplayer songname.pvm',13,13,'$'
-msg_loading:    db 'loading $'
+msg_loading:    db 'loading ','$'
 msg_error_load: db 'error loading',13,10,'$'
-msg_enter:      db 13,10
+msg_error_fmt:  db 'invalid format',13,10,'$'
+msg_enter:      db 13,10,'$'
 
 ;vars
 filename:
@@ -393,6 +426,15 @@ pvm_offset:                                     ;pointer to next byte to read
 old_pic_imr:
         db      0                               ;PIC IMR original value
 
+volume_0:
+        db      1001_1111b                       ;vol 0 channel 0
+        db      0000_1111b
+        db      1011_1111b                       ;vol 0 channel 1
+        db      0000_1111b
+        db      1101_1111b                       ;vol 0 channel 2
+        db      0000_1111b
+        db      1111_1111b                       ;vol 0 channel 3
+        db      0000_1111b
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; section STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
