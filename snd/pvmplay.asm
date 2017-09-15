@@ -25,9 +25,12 @@ main:
         mov     ss,ax                           ; setting the stack pointer
         mov     sp,stacktop
         sti
+        cld                                     ;direction forward
 
         mov     dx,msg_title
         call    print_msg
+
+        call    verify_tandy
 
         call    parse_cmd_line                  ;es must remain intact until this
         call    load_song
@@ -51,20 +54,23 @@ print_msg:
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+verify_tandy:
+        ;FIXME: Detect Tandy/PC Jr.
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 parse_cmd_line:
-        push ds
-        push es
+        push    ds
+        push    es
 
         push    ds                              ;swap ds,es
         push    es
         pop     ds
         pop     es
 
-        cld                                     ;direction forward
-        stc                                     ;carry on (means error)
-
         mov     di,filename                     ;location for name
         mov     si,81h                          ;params are in ds:si
+        sub     bx,bx                           ;bx=0: invalid params
 
 .loop:
         lodsb                                   ;al <- ds:si ( si++)
@@ -73,8 +79,8 @@ parse_cmd_line:
         cmp     al,13                           ;return?
         je      .exit                           ;if so, exit
 
-        clc                                     ;clear carry. means an argument
-                                                ; was passed
+        mov     bl,1                            ;bx != 0 means arg was passed
+
         stosb                                   ;write name in es:di
         jmp     .loop                           ; and keep reading
 
@@ -86,7 +92,8 @@ parse_cmd_line:
 
         pop     es
         pop     ds
-        jc      .error
+        cmp     bx,0                            ;arg was passed?
+        je      .error
         ret
 
 .error:
@@ -220,8 +227,9 @@ music_init:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 player_main:
+        mov     dx,msg_playing
+        call    print_msg
 
-        ; Main loop
 .mainloop:
         hlt                                     ;wait for IRQ
 
@@ -259,9 +267,8 @@ setup_PIT:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 sound_cleanup:
-        ; FIXME: do the cleanup
         mov     si,volume_0
-        mov     cx,8
+        mov     cx,4
 .repeat:
         lodsb
         out     0c0h,al
@@ -405,10 +412,11 @@ i08_counter:
 section .data data
 
 ;messages
-msg_title:      db 'pvmplayer v0.1 - riq/pvm',13,10,'$'
+msg_title:      db 'pvmplay v0.1 - riq/pvm',13,10,13,10,'$'
 msg_help:       db 'usage:',13,10
-                db '   pvmplayer songname.pvm',13,13,'$'
+                db '   pvmplay songname.pvm',13,10,13,10,'$'
 msg_loading:    db 'loading ','$'
+msg_playing:    db 'playing...',13,10,'$'
 msg_error_load: db 'error loading',13,10,'$'
 msg_error_fmt:  db 'invalid format',13,10,'$'
 msg_enter:      db 13,10,'$'
@@ -427,14 +435,11 @@ old_pic_imr:
         db      0                               ;PIC IMR original value
 
 volume_0:
-        db      1001_1111b                       ;vol 0 channel 0
-        db      0000_1111b
-        db      1011_1111b                       ;vol 0 channel 1
-        db      0000_1111b
-        db      1101_1111b                       ;vol 0 channel 2
-        db      0000_1111b
-        db      1111_1111b                       ;vol 0 channel 3
-        db      0000_1111b
+        db      1001_1111b                      ;vol 0 channel 0
+        db      1011_1111b                      ;vol 0 channel 1
+        db      1101_1111b                      ;vol 0 channel 2
+        db      1111_1111b                      ;vol 0 channel 3
+
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; section STACK
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
