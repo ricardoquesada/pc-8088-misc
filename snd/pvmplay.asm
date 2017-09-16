@@ -45,8 +45,8 @@ main:
         call    restore_irq
         call    sound_cleanup
 
-	mov	ax,0002h
-	int 	10h 				;restore video mode, clean screen
+        mov     ax,0002h
+        int     10h                             ;restore video mode, clean screen
 
         mov     ax,4c00h                        ;Terminate program
         int     21h                             ;INT 21, AH=4Ch, AL=exit code
@@ -82,8 +82,8 @@ parse_cmd_line:
         je      .loop                           ;keep reading if it is space
         cmp     al,13                           ;return?
         je      .exit                           ;if so, exit
-	cmp 	al,'/'				;argument?
-	je 	.parse_option
+        cmp     al,'/'                          ;argument?
+        je      .parse_option
 
         mov     bl,1                            ;bx != 0 means arg was passed
 
@@ -91,14 +91,14 @@ parse_cmd_line:
         jmp     .loop                           ; and keep reading
 
 .parse_option:
-	lodsb
-	cmp	al,13
-	je 	.exit
-	and 	al,0dfh 			;to uppercase
-	cmp	al,'R' 				;should enable raster?
-	jne	.loop
-	mov 	byte [es:enable_raster],1 	;turn on raster
-	jmp 	.loop
+        lodsb
+        cmp     al,13
+        je      .exit
+        and     al,0dfh                         ;to uppercase
+        cmp     al,'R'                          ;should enable raster?
+        jne     .loop
+        mov     byte [es:enable_raster],1       ;turn on raster
+        jmp     .loop
 
 .exit:
         mov     al,0
@@ -118,7 +118,6 @@ parse_cmd_line:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 verify_song:
-        int     3
         push    ds
 
         mov     ax,pvmsong
@@ -243,11 +242,11 @@ music_init:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 video_init:
-	cmp	byte [enable_raster],0
-	je 	.exit
+    cmp byte [enable_raster],0
+    je  .exit
 
-	mov 	ax,0009h 			;320x200 x 16 colors
-	int 	10h
+    mov     ax,0009h            ;320x200 x 16 colors
+    int     10h
 
         mov     dx,0x3de
         mov     al,0b0001_0100                  ;enable border color, enable 16 colors
@@ -317,7 +316,7 @@ sound_cleanup:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 inc_d020:
-        mov     dx,0x3da                        ;show how many raster barts it consumes
+        mov     dx,03dah                        ;show how many raster barts it consumes
         mov     al,2                            ;select border color
         out     dx,al
 
@@ -325,19 +324,19 @@ inc_d020:
         mov     al,0fh
         out     dx,al                           ;change border to white
 
-	ret
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 dec_d020:
-        mov     dx,0x3da                        ;show how many raster barts it consumes
+        mov     dx,03dah                        ;show how many raster barts it consumes
         mov     al,2                            ;select border color
         out     dx,al
 
         add     dx,4
-	sub 	al,al
+        sub     al,al
         out     dx,al                           ;change border back to black
 
-	ret
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 song_tick:
@@ -360,9 +359,9 @@ END     equ     1000_0000b
         mov     ax,pvmsong                      ;song in ds
         mov     ds,ax
 
-	cmp 	byte [es:enable_raster],0
-	je 	.l0
-	call 	inc_d020
+        cmp     byte [es:enable_raster],0
+        je  .l0
+        call    inc_d020
 
 .l0:
         sub     cx,cx                           ;cx=0... needed later
@@ -409,7 +408,7 @@ END     equ     1000_0000b
         out     0c0h,al
         loop    .repeat
 
-        jmp     .l0                             ; start again. fetch next command
+        jmp     .l1                             ; start again. fetch next command
 
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -434,9 +433,9 @@ END     equ     1000_0000b
         mov     [es:pvm_offset],si
 .exit_skip:
 
-	cmp 	byte [es:enable_raster],0
-	je 	.l2
-	call 	dec_d020
+        cmp     byte [es:enable_raster],0
+        je  .l2
+        call    dec_d020
 .l2:
         pop     es
         pop     ds
@@ -451,6 +450,7 @@ END     equ     1000_0000b
 ; IRQ
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 new_i08:
+        int     3
         call    song_tick
 
         add     word [cs:i08_counter],PIT_divider
@@ -514,7 +514,7 @@ volume_0:
         db      1111_1111b                      ;vol 0 channel 3
 
 enable_raster:
-	db 	0 				;boolean. if 1, display raster bars
+    db  0               ;boolean. if 1, display raster bars
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; section STACK
