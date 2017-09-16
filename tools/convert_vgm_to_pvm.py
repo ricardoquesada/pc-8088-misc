@@ -10,51 +10,56 @@ For the moment, the only supported chip is SN76489 (Sega Master System in
 Deflemask).
 """
 import argparse
-import sys
+import os
 import struct
+import sys
 
 
 __docformat__ = 'restructuredtext'
+
 
 class ToPVM:
     """The class that does all the conversions"""
 
     # 3 MSB bits are designed for commands
     # 5 LSB bits are for data for the command
-    DATA =          0b00000000      # 000xxxxx (xxxxxx = len of data)
-    DATA_EXTRA =    0b00100000      # 001----- next byte will have the data len
-    DELAY =         0b01000000      # 010xxxxx (xxxxxx = cycles to delay)
-    DELAY_EXTRA =   0b01100000      # 011----- next byte will have the delay
-    END =           0b10000000      # 100-----
+    DATA = 0b00000000               # 000xxxxx (xxxxxx = len of data)
+    DATA_EXTRA = 0b00100000         # 001----- next byte will have the data len
+    DELAY = 0b01000000              # 010xxxxx (xxxxxx = cycles to delay)
+    DELAY_EXTRA = 0b01100000        # 011----- next byte will have the delay
+    END = 0b10000000                # 100-----
 
-    def __init__(self, vgm_file, output_fd):
-        self._vgm_file = vgm_file
-        self._output_fd = output_fd
+    def __init__(self, vgm_fd):
+        self._vgm_fd = vgm_fd
+        path = os.path.dirname(vgm_fd.name)
+        basename = os.path.basename(vgm_fd.name)
+        name = '%s.%s' % (os.path.splitext(basename)[0], 'pvm')
+        self._out_filename = os.path.join(path, name)
 
         self._output_data = bytearray()
         self._current_port_data = bytearray()
 
-
     def run(self):
         """Execute the conversor."""
-        with open(self._vgm_file, 'rb') as f:
+        with open(self._out_filename, 'w+') as fd_out:
             # FIXME: Assuming VGM version is 1.50 (64 bytes of header)
-            header = bytearray(f.read(0x40))
+            header = bytearray(self._vgm_fd.read(0x40))
 
             if header[:4].decode('utf-8') != 'Vgm ':
                 raise Exception('Not a valid VGM file')
 
+            print('Converting: %s -> %s...' % (self._vgm_fd.name,
+                    self._out_filename), end='')
             vgm_version = struct.unpack_from("<I", header, 8)[0]
-            print('VGM version: %d' % vgm_version)
+            if vgm_version != 0x150:
+                print(' failed. Invalid VGM version: %x' % vgm_version)
+                return
 
             # unpack little endian unsigned integer (4 bytes)
             file_len = struct.unpack_from("<I", header, 4)[0]
-
-            print('File len: %d' % (file_len + 4))
-            data = bytearray(f.read(file_len + 4 - 0x40))
+            data = bytearray(self._vgm_fd.read(file_len + 4 - 0x40))
 
             i = 0
-            print('max len: %d' % len(data))
             while i < len(data):
                 if data[i] == 0x50:
                     self.add_port_data(data[i+1])
@@ -71,11 +76,18 @@ class ToPVM:
                     self.add_end()
                     break
                 else:
-                    raise Exception('Unknown value: data[0x%x] = 0x%x' % (i, data[i]))
+                    raise Exception('Unknown value: data[0x%x] = 0x%x' %
+                            (i, data[i]))
 
-        self.prepend_header()
+            self.prepend_header()
 
-        self._output_fd.buffer.write(self._output_data)
+            old_len = file_len + 4
+            new_len = len(self._output_data)
+            if new_len < 65536:
+                fd_out.buffer.write(self._output_data)
+                print(' done (%d%% smaller)' % (100-(100*new_len/old_len)))
+            else:
+                print(' failed. converted size %d > 65535' % new_len)
 
     def prepend_header(self):
         HEADER_LEN = 16
@@ -88,7 +100,7 @@ class ToPVM:
 
         # total len: 4 bytes
         l = len(self._output_data) + HEADER_LEN
-        total_len = struct.pack("<I",l)
+        total_len = struct.pack("<I", l)
         header += total_len
 
         # version: 2 bytes. minor, major
@@ -153,10 +165,11 @@ def parse_args():
 
 $ %(prog)s -o my_music.pvm my_music.vgm
 """)
-    parser.add_argument('filename', metavar='<filename>',
-                        help='file to convert')
-    parser.add_argument('-o', '--output-file', metavar='<filename>',
-                        help='output file. Default: stdout')
+    parser.add_argument('filenames',
+            metavar='<filename>',
+            nargs='+',
+            type=argparse.FileType('rb'),
+            help='files to convert to pvm format')
 
     args = parser.parse_args()
     return args
@@ -165,11 +178,10 @@ $ %(prog)s -o my_music.pvm my_music.vgm
 def main():
     """Main function."""
     args = parse_args()
-    if args.output_file is not None:
-        with open(args.output_file, 'w+') as fd:
-            ToPVM(args.filename, fd).run()
-    else:
-        ToPVM(args.filename, sys.stdout).run()
+
+    print('VGM to PVM v0.1 - riq/pvm - http://pungas.space\n')
+    for fd in args.filenames:
+        ToPVM(fd).run()
 
 if __name__ == "__main__":
     main()

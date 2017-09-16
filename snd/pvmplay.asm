@@ -37,6 +37,7 @@ main:
         call    verify_song
 
         call    music_init                      ;must be called before setup_irq
+        call    video_init
         call    setup_irq
 
         call    player_main
@@ -226,6 +227,21 @@ music_init:
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+video_init:
+        mov     dx,0x3de
+        mov     al,0b0001_0100                  ;enable border color, enable 16 colors
+        out     dx,al
+
+        mov     dx,0x3da
+        mov     al,2                            ;select border color
+        out     dx,al
+
+        add     dx,4
+        mov     al,0
+        out     dx,al                           ;change border to black
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 player_main:
         mov     dx,msg_playing
         call    print_msg
@@ -285,12 +301,22 @@ DELAY   equ     0100_0000b
 DELAY_EXTRA equ 0110_0000b
 END     equ     1000_0000b
 
-        int     3
         push    ax
         push    cx
+        push    dx
         push    si
         push    ds
         push    es
+
+
+        mov     dx,0x3da                        ;show how many raster barts it consumes
+        mov     al,2                            ;select border color
+        out     dx,al
+
+        add     dx,4
+        mov     al,0fh
+        out     dx,al                           ;change border to white
+
 
         mov     ax,data                         ;vars in es
         mov     es,ax
@@ -366,9 +392,18 @@ END     equ     1000_0000b
         mov     [es:pvm_offset],si
 .exit_skip:
 
+        mov     dx,0x3da                        ;show how many raster barts it consumes
+        mov     al,2                            ;select border color
+        out     dx,al
+
+        add     dx,4
+        sub     al,al
+        out     dx,al                           ;change border to white
+
         pop     es
         pop     ds
         pop     si
+        pop     dx
         pop     cx
         pop     ax
         ret
@@ -412,7 +447,7 @@ i08_counter:
 section .data data
 
 ;messages
-msg_title:      db 'pvmplay v0.1 - riq/pvm',13,10,13,10,'$'
+msg_title:      db 'pvmplay v0.1 - riq/pvm - http://pungas.space',13,10,13,10,'$'
 msg_help:       db 'usage:',13,10
                 db '   pvmplay songname.pvm',13,10,13,10,'$'
 msg_loading:    db 'loading ','$'
