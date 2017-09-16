@@ -200,10 +200,30 @@ wait_vert_retrace:
         jz      .wait_retrace_start
 
         ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+wait_horiz_retrace:
+        mov     dx,0x3da
+.wait_retrace_finish:                            ;wait for horizontal retrace start
+        in      al,dx
+        test    al,1
+        jnz      .wait_retrace_finish
+
+.wait_retrace_start:
+        in      al,dx                           ;wait until start of the retrace
+        test    al,1
+        jz      .wait_retrace_start
+        ret
+
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 setup_irq:
         call    wait_vert_retrace               ;so raster shows more or less always
-                                                ;at the same position
+
+        mov     cx,20                           ;and wait for 20 after the vert retrace
+.repeat:
+        call    wait_horiz_retrace
+        loop    .repeat
+
         cli
 
         push    ds
