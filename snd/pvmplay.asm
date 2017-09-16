@@ -324,6 +324,14 @@ inc_d020:
         mov     al,0fh
         out     dx,al                           ;change border to white
 
+        sub     dx,4                            ;update palette
+        mov     al,0x10                         ;select color=0
+        out     dx,al                           ;select palette register
+
+        add     dx,4
+        mov     al,0fh                          ;color black in white now
+        out     dx,al
+
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -335,6 +343,14 @@ dec_d020:
         add     dx,4
         sub     al,al
         out     dx,al                           ;change border back to black
+
+        sub     dx,4                            ;update palette
+        mov     al,0x10                         ;select color=0
+        out     dx,al                           ;select palette register
+
+        add     dx,4
+        sub     al,al                           ;color black is back to black
+        out     dx,al
 
         ret
 
