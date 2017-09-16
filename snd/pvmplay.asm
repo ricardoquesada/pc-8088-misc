@@ -186,7 +186,24 @@ exit_with_error:
         int     21h
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+wait_vert_retrace:
+        mov     dx,0x3da
+
+.wait_retrace_finish:                           ;if retrace already started, wait
+        in      al,dx                           ; until it finishes
+        test    al,8
+        jnz     .wait_retrace_finish
+
+.wait_retrace_start:
+        in      al,dx                           ;wait until start of the retrace
+        test    al,8
+        jz      .wait_retrace_start
+
+        ret
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 setup_irq:
+        call    wait_vert_retrace               ;so raster shows more or less always
+                                                ;at the same position
         cli
 
         push    ds
