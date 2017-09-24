@@ -64,6 +64,7 @@ verify_tandy:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 parse_cmd_line:
+        ;FIXME: if song name has '/' in it, it will fail
         push    ds
         push    es
 
@@ -95,8 +96,8 @@ parse_cmd_line:
         cmp     al,13
         je      .exit
         and     al,0dfh                         ;to uppercase
-        cmp     al,'R'                          ;should enable raster?
-        jne     .loop
+        cmp     al,'R'                          ;enable raster?
+        jne     .error
         mov     byte [es:enable_raster],1       ;turn on raster
         jmp     .loop
 
@@ -106,13 +107,15 @@ parse_cmd_line:
         mov     al,'$'                          ;to show filename
         stosb
 
-        pop     es
-        pop     ds
         cmp     bx,0                            ;arg was passed?
         je      .error
+        pop     es
+        pop     ds
         ret
 
 .error:
+        pop     es
+        pop     ds
         mov     dx,msg_help
         jmp     exit_with_error
 

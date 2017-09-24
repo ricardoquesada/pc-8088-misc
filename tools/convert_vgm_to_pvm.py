@@ -45,14 +45,21 @@ class ToPVM:
             # FIXME: Assuming VGM version is 1.50 (64 bytes of header)
             header = bytearray(self._vgm_fd.read(0x40))
 
-            if header[:4].decode('utf-8') != 'Vgm ':
-                raise Exception('Not a valid VGM file')
-
             print('Converting: %s -> %s...' % (self._vgm_fd.name,
                     self._out_filename), end='')
+
+            if header[:4].decode('utf-8') != 'Vgm ':
+                print(' failed. Not a valid VGM file')
+                return
+
             vgm_version = struct.unpack_from("<I", header, 8)[0]
             if vgm_version != 0x150:
                 print(' failed. Invalid VGM version: %x' % vgm_version)
+                return
+
+            sn76489_clock = struct.unpack_from("<I", header, 12)[0]
+            if sn76489_clock != 3579545:
+                print(' failed. Not a VGM SN76489 song')
                 return
 
             # unpack little endian unsigned integer (4 bytes)
