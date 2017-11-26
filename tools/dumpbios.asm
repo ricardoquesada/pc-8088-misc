@@ -22,7 +22,7 @@ section .text
 ;        call    save_file_e000                  ;Save BIOS e000-7FFF
 ;        call    save_file_e800                  ;Save BIOS e800-FFFF
 ;        call    save_file_f000                  ;Save BIOS f000-7FFF
-;        call    save_file_f800                  ;Save BIOS f800-FFFF
+        call    save_file_f800                  ;Save BIOS f800-FFFF
 
         mov     ax,0x4c00                       ;exit to DOS
         int     0x21
@@ -44,7 +44,7 @@ save_file_zero:
         cld
         rep movsw
 
-        push    es 
+        push    es
         pop     ds
 
         mov     ax,0x3c00                       ;create file
