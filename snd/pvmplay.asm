@@ -45,16 +45,16 @@ main:
         call    restore_irq
         call    sound_cleanup
 
-        mov     ax,0002h
-        int     10h                             ;restore video mode, clean screen
+        mov     ax,0x0002
+        int     0x10                            ;restore video mode, clean screen
 
-        mov     ax,4c00h                        ;Terminate program
-        int     21h                             ;INT 21, AH=4Ch, AL=exit code
+        mov     ax,0x4c00                       ;Terminate program
+        int     0x21                            ;INT 21, AH=4Ch, AL=exit code
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 print_msg:
         mov     ah,9
-        int     21h
+        int     0x21
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -74,12 +74,12 @@ parse_cmd_line:
         pop     es
 
         mov     di,filename                     ;location for name
-        mov     si,81h                          ;params are in ds:si
+        mov     si,0x81                         ;params are in ds:si
         sub     bx,bx                           ;bx=0: invalid params
 
 .loop:
         lodsb                                   ;al <- ds:si ( si++)
-        cmp     al,20h                          ;space?
+        cmp     al,0x20                         ;space?
         je      .loop                           ;keep reading if it is space
         cmp     al,13                           ;return?
         je      .exit                           ;if so, exit
@@ -158,16 +158,16 @@ load_song:
         jc      .error
 
         mov     bx,ax                           ;file handle
-        mov     cx,0ffffh                       ;bytes to read: entire segment
+        mov     cx,0xffff                       ;bytes to read: entire segment
         xor     dx,dx
         mov     ax,pvmsong
         mov     ds,ax                           ;dst: pvmsong segment:0
-        mov     ah,3fh                          ;read file
-        int     21h
+        mov     ah,0x3f                         ;read file
+        int     0x21
         jc      .error
 
-        mov     ah,3eh                          ;close fd
-        int     21h
+        mov     ah,0x3e                         ;close fd
+        int     0x21
         jc      .error                          ;error? exit
 
         pop     ds
@@ -185,12 +185,12 @@ load_song:
 
 exit_with_error:
         call    print_msg
-        mov     ax,4c02h
-        int     21h
+        mov     ax,0x4c02
+        int     0x21
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 wait_vert_retrace:
-        mov     dx,0x3da
+        mov     dx,0x03da
 
 .wait_retrace_finish:                           ;if retrace already started, wait
         in      al,dx                           ; until it finishes
@@ -206,7 +206,7 @@ wait_vert_retrace:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 wait_horiz_retrace:
-        mov     dx,0x3da
+        mov     dx,0x03da
 .wait_retrace_finish:                            ;wait for horizontal retrace start
         in      al,dx
         test    al,1
@@ -245,10 +245,10 @@ setup_irq:
         mov     ax,PIT_divider                  ;Configure the PIT to
         call    setup_PIT                       ;issue IRQ at 60 Hz rate
 
-        in      al,21h                          ;Read primary PIC Interrupt Mask Register
+        in      al,0x21                         ;Read primary PIC Interrupt Mask Register
         mov     [old_pic_imr],al                ;Store it for later
-        mov     al,1111_1100b                   ;Mask off everything except IRQ 0
-        out     21h,al                          ; and IRQ1 (timer and keyboard)
+        mov     al,0b1111_1100                  ;Mask off everything except IRQ 0
+        out     0x21,al                         ; and IRQ1 (timer and keyboard)
 
         sti
         ret
@@ -258,7 +258,7 @@ restore_irq:
         cli
 
         mov     al,[old_pic_imr]                ;Get old PIC settings
-        out     21h,al                          ;Set primary PIC Interrupt Mask Register
+        out     0x21,al                         ;Set primary PIC Interrupt Mask Register
 
         mov     ax,0                            ;Reset PIT to defaults (~18.2 Hz)
         call    setup_PIT                       ; actually means 10000h
@@ -276,23 +276,26 @@ restore_irq:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 music_init:
-        mov     word [pvm_offset],10h           ;update start offset
+        mov     al,0x6c                         ;PCJr only:
+        out     0x61,al                         ; use 3-voice instead of speacker
+
+        mov     word [pvm_offset],0x10          ;update start offset
         mov     byte [pvm_wait],0               ;don't wait at start
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 video_init:
-    cmp byte [enable_raster],0
-    je  .exit
+        cmp byte [enable_raster],0
+        je  .exit
 
-    mov     ax,0009h            ;320x200 x 16 colors
-    int     10h
+        mov     ax,0x0009                       ;320x200 x 16 colors
+        int     0x10
 
-        mov     dx,0x3de
+        mov     dx,0x03de
         mov     al,0b0001_0100                  ;enable border color, enable 16 colors
         out     dx,al
 
-        mov     dx,0x3da
+        mov     dx,0x03da
         mov     al,2                            ;select border color
         out     dx,al
 
@@ -314,19 +317,19 @@ player_main:
 .l2:
         ; Loop until some input is given
         mov     ah,1
-        int     16h                             ;INT 16,AH=1, OUT:ZF=status
+        int     0x16                            ;INT 16,AH=1, OUT:ZF=status
         jz      .mainloop
 
         ; Read the input key
         xor     ax,ax
-        int     16h                             ;INT 16,AH=0, OUT:AX=key
+        int     0x16                            ;INT 16,AH=0, OUT:AX=key
         ret
 
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 wait_key:
         xor     ah,ah                           ;Function number: get key
-        int     16h                             ;Call BIOS keyboard interrupt
+        int     0x16                            ;Call BIOS keyboard interrupt
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -334,12 +337,12 @@ setup_PIT:
         ; AX = PIT clock period
         ;          (Divider to 1193180 Hz)
         push    ax
-        mov     al,34h
-        out     43h,al
+        mov     al,0x34
+        out     0x43,al
         pop     ax
-        out     40h,al
+        out     0x40,al
         mov     al,ah
-        out     40h,al
+        out     0x40,al
 
         ret
 
@@ -349,19 +352,19 @@ sound_cleanup:
         mov     cx,4
 .repeat:
         lodsb
-        out     0c0h,al
+        out     0xc0,al
         loop    .repeat
 
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 inc_d020:
-        mov     dx,03dah                        ;show how many raster barts it consumes
+        mov     dx,0x03da                       ;show how many raster barts it consumes
         mov     al,2                            ;select border color
         out     dx,al
 
         add     dx,4
-        mov     al,0fh
+        mov     al,0x0f
         out     dx,al                           ;change border to white
 
         sub     dx,4                            ;update palette
@@ -369,14 +372,14 @@ inc_d020:
         out     dx,al                           ;select palette register
 
         add     dx,4
-        mov     al,0fh                          ;color black in white now
+        mov     al,0x0f                         ;color black in white now
         out     dx,al
 
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 dec_d020:
-        mov     dx,03dah                        ;show how many raster barts it consumes
+        mov     dx,0x03da                       ;show how many raster barts it consumes
         mov     al,2                            ;select border color
         out     dx,al
 
@@ -397,11 +400,11 @@ dec_d020:
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 song_tick:
 
-DATA    equ     0000_0000b
-DATA_EXTRA equ  0010_0000b
-DELAY   equ     0100_0000b
-DELAY_EXTRA equ 0110_0000b
-END     equ     1000_0000b
+DATA    equ     0b0000_0000
+DATA_EXTRA equ  0b0010_0000
+DELAY   equ     0b0100_0000
+DELAY_EXTRA equ 0b0110_0000
+END     equ     0b1000_0000
 
         push    ax
         push    cx
@@ -432,8 +435,8 @@ END     equ     1000_0000b
 .l1:
         lodsb                                   ;fetch command byte
         mov     ah,al
-        and     al,1110_0000b                   ;al=command only
-        and     ah,0001_1111b                   ;ah=command args only
+        and     al,0b1110_0000                  ;al=command only
+        and     ah,0b0001_1111                  ;ah=command args only
 
         cmp     al,DATA                         ;data?
         je      .is_data
@@ -461,7 +464,7 @@ END     equ     1000_0000b
         mov     cl,al                           ;new repeat value taken from prev. fetch
 .repeat:
         lodsb
-        out     0c0h,al
+        out     0xc0,al
         loop    .repeat
 
         jmp     .l1                             ; start again. fetch next command
@@ -482,7 +485,7 @@ END     equ     1000_0000b
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 .is_end:
         mov     byte [es:pvm_wait],5            ;wait 5 cycles before starting again
-        mov     word [es:pvm_offset],10h        ; beginning of song
+        mov     word [es:pvm_offset],0x10       ; beginning of song
         jmp     .exit_skip
 
 .exit:
@@ -511,13 +514,13 @@ new_i08:
 
         add     word [cs:i08_counter],PIT_divider
         jnc     skip_old_i08
-        db      0eah                            ;Jump far...
+        db      0xea                            ;Jump far...
 old_i08:        dd 0                            ; ...to Old INT 08 vector
 
 skip_old_i08:
         push    ax
-        mov     al,20h                          ;Send the EOI signal
-        out     20h,al                          ; to the IRQ controller
+        mov     al,0x20                         ;Send the EOI signal
+        out     0x20,al                         ; to the IRQ controller
         pop     ax
 
         iret                                    ;Exit interrupt
@@ -564,10 +567,10 @@ old_pic_imr:
         db      0                               ;PIC IMR original value
 
 volume_0:
-        db      1001_1111b                      ;vol 0 channel 0
-        db      1011_1111b                      ;vol 0 channel 1
-        db      1101_1111b                      ;vol 0 channel 2
-        db      1111_1111b                      ;vol 0 channel 3
+        db      0b1001_1111                     ;vol 0 channel 0
+        db      0b1011_1111                     ;vol 0 channel 1
+        db      0b1101_1111                     ;vol 0 channel 2
+        db      0b1111_1111                     ;vol 0 channel 3
 
 enable_raster:
     db  0               ;boolean. if 1, display raster bars
