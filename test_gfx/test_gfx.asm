@@ -12,6 +12,9 @@ cpu     8086
 
 extern ZTimerOn, ZTimerOff, ZTimerReport
 
+GFX_SEG         equ     0x1800                  ;0x1800 for PCJr.
+                                                ;0xb800 for Tandy
+
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; CODE
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -152,7 +155,7 @@ set_border_color:
 clear_video_mem:
         mov     cx,0x4000                       ;32k = 16k * 2
 
-        mov     bx,0xb800
+        mov     bx,GFX_SEG
         mov     es,bx
         mov     di,0x0000                       ;es:di: destination
         sub     ax,ax
@@ -211,11 +214,11 @@ gfx_modes:
         dw 0x000a
 
 gfx_buffer_addr:
-        dw 0xb800
-        dw 0xb800
-        dw 0xb800
-        dw 0xb800
-        dw 0xb800
+        dw GFX_SEG
+        dw GFX_SEG
+        dw GFX_SEG
+        dw GFX_SEG
+        dw GFX_SEG
 
 bytes_to_load:
         dw 16384                                ;bytes to load from file
