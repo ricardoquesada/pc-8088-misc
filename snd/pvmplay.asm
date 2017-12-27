@@ -222,7 +222,7 @@ wait_horiz_retrace:
 setup_irq:
         call    wait_vert_retrace               ;so raster shows more or less always
 
-        mov     cx,20                           ;and wait for 20 after the vert retrace
+        mov     cx,80                           ;and wait for 20 after the vert retrace
 .repeat:
         call    wait_horiz_retrace
         loop    .repeat
@@ -276,8 +276,9 @@ restore_irq:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 music_init:
-        mov     al,0x6c                         ;PCJr only:
-        out     0x61,al                         ; use 3-voice instead of speacker
+        in      al,0x61
+        or      al,0b0110_0000                  ;PCJr. only: Use 76496
+        out     0x61,al                         ; instead of internal speaker
 
         mov     word [pvm_offset],0x10          ;update start offset
         mov     byte [pvm_wait],0               ;don't wait at start
