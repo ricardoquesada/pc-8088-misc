@@ -1,6 +1,6 @@
-# Misc stuff for the Tandy 1000 HX
+# Misc stuff for old PC DOS machines
 
-Might be valid for other Tandy 1000, and/or IBM PC Jr. and/or other 8088 + CGA clones.
+Random stuff for old PC DOS machines, like the Tandy 1000, PCjr, etc.
 
 In order to compile it, download and install the following:
 
