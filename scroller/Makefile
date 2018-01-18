@@ -19,9 +19,9 @@ clean:
 s160100:
 	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
 	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c $@.exe
+	dosbox-x -conf ../conf/dosbox-x_tandy.conf -c "mount c ../bin/ && dir" -c "c:" -c $@.exe
 
 s320200:
 	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
 	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c $@.exe
+	dosbox-x -conf ../conf/dosbox-x_tandy.conf -c "mount c ../bin/ && dir" -c "c:" -c $@.exe

@@ -36,15 +36,15 @@ res:
 
 run: $(TARGET)
 	echo "Running game..."
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c ${TARGET_NAME}
+	dosbox-x -conf ../conf/dosbox-x_tandy.conf -c "mount c ../bin/ && dir" -c "c:" -c ${TARGET_NAME}
 
 
 t160x100:
 	$(ASM) $(ASMFLAGS) t160x100.asm -o t160x100.o
 	$(LD) t160x100.o $(LDFLAGS) -o ../bin/t160x100.exe
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c t160x100.exe
+	dosbox-x -conf ../conf/dosbox-x_tandy.conf -c "mount c ../bin/ && dir" -c "c:" -c t160x100.exe
 
 border:
 	$(ASM) $(ASMFLAGS) border.asm -o border.o
 	$(LD) border.o $(LDFLAGS) -o ../bin/border.exe
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c border.exe
+	dosbox-x -conf ../conf/dosbox-x_tandy.conf -c "mount c ../bin/ && dir" -c "c:" -c border.exe

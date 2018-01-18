@@ -18,9 +18,9 @@ clean:
 tandysnd:
 	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
 	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c "$@.exe zelda2.snd"
+	dosbox-x -conf ../conf/dosbox-x_tandy.conf -c "mount c ../bin/ && dir" -c "c:" -c "$@.exe zelda2.snd"
 
 vgmplayer:
 	$(ASM) $(ASMFLAGS) $@.asm -o $@.o
 	$(LD) $@.o $(LDFLAGS) -o ../bin/$@.exe
-	dosbox-x -conf ../conf/dosbox-x.conf -c "mount c ../bin/ && dir" -c "c:" -c "vgmpla~1.exe"
+	dosbox-x -conf ../conf/dosbox-x_tandy.conf -c "mount c ../bin/ && dir" -c "c:" -c "vgmpla~1.exe"
