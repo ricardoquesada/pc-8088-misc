@@ -1,6 +1,8 @@
 IBM PCjr cheatsheet
 ===================
 
+.. contents:: Contents
+   :depth: 2
 
 PIC 8259
 --------
