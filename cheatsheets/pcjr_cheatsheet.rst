@@ -8,9 +8,7 @@ PIC 8259
 Only one (maste) PIC `8259`_ in the PCjr. There is no slave PIC.
 
 +-------+------------------------------------+
-| 0x20  | PIC 8259                           |
-+-------+------------------------------------+
-| ICW1: Initialization Command Word 1        |
+| 0x20  |Initialization Command Word 1 (ICW1)|
 +=======+====================================+
 |bit 0  | ``0``: ICW4 needed                 |
 |       | ``1``: not needed                  |
@@ -28,25 +26,21 @@ Only one (maste) PIC `8259`_ in the PCjr. There is no slave PIC.
 |bit 5-7| Not used. Should be ``0`` in x86   |
 +-------+------------------------------------+
 
-+-------+------------------------------------+
-| 0x21  | PIC 8259                           |
-+-------+------------------------------------+
-| ICW2: Initialization Command Word 2        |
-+=======+====================================+
-|bit 0-2| Not used in x86                    |
-+-------+------------------------------------+
-|bit 3-7| Specifies the x86 interrupt vector |
-|       | address times 8                    |
-+-------+------------------------------------+
++-------+--------------------------------------+
+| 0x21  | Initialization Command Word 2 (ICW2) |
++=======+======================================+
+|bit 0-2| Not used in x86                      |
++-------+--------------------------------------+
+|bit 3-7| Specifies the x86 interrupt vector   |
+|       | address times 8                      |
++-------+--------------------------------------+
 
 +-------+--------------------------------------+
-|0x21   | PIC 8259                             |
-+-------+--------------------------------------+
-|ICW4: Initialization Command Word 4           |
+| 0x21  | Initialization Command Word 4 (ICW4) |
 +=======+======================================+
 |bit 0  | Set to 1 in x86                      |
 +-------+--------------------------------------+
-|bit 1  |0: manual EOI                         |  
+|bit 1  |0: manual EOI                         |
 |       |1: controller perform automatic EOI   |
 +-------+--------------------------------------+
 |bit 2  | if bit 3 == 1:                       |
@@ -62,9 +56,7 @@ Only one (maste) PIC `8259`_ in the PCjr. There is no slave PIC.
 +-------+--------------------------------------+
 
 +-------+--------------------------------------+
-| 0x20  | PIC 8259                             |
-+-------+--------------------------------------+
-| OCW2: Operation Command Word 2               |
+| 0x20  | Operation Command Word 2 (OCW2)      |
 +=======+======================================+
 |bit 0-2| Interrupt level upon which controller|
 |       | must react.                          |
