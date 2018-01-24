@@ -5,7 +5,7 @@ IBM PCjr cheatsheet
 Port Description
 ----------------
 
-+----------------------------------------+
++-------+--------------------------------+
 |0x20   | PIC `8259`_                    |
 +=======+================================+
 | ICW1: Initialization Command Word 1    |
@@ -26,27 +26,27 @@ Port Description
 |bit 5-7| Not used. Should be 0 in x86   |
 +-------+--------------------------------+
 
-+--------------------------------------------+
-|0x20   | PIC `8259`_                        |
-+=======+====================================+
-| ICW4: Initialization Command Word 4        |
-+-------+------------------------------------+
-|bit 0  | Set to 1 in x86                    |
-+-------+------------------------------------+
-|bit 1  | 0: manual EOI                      |
-|       | 1: controller perform automatic EOI|
-+-------+------------------------------------+
-|bit 2  | if bit 3 == 1:                     |
-|       |   0: buffer slave                  |
-|       |   1: buffer master                 |
-+-------+------------------------------------+
-|bit 3  | 0: Non-buffer mode                 |
-|       | 1: Buffer mode                     |
-+-------+------------------------------------+
-|bit 4  | Special Fully Nested Mode. Not used|
-+-------+------------------------------------+
-|bit 5-7| Not used. Should be 0              |
-+-------+------------------------------------+
++-------+--------------------------------------+
+|0x20   | PIC `8259`_                          |
++-------+--------------------------------------+
+|ICW4: Initialization Command Word 4           |
++=======+======================================+
+|bit 0  | Set to 1 in x86                      |
++-------+--------------------------------------+
+|bit 1  |0: manual EOI                         |  
+|       |1: controller perform automatic EOI   |
++-------+--------------------------------------+
+|bit 2  | if bit 3 == 1:                       |
+|       | 0: buffer slave                      |
+|       | 1: buffer master                     |
++-------+--------------------------------------+
+|bit 3  | 0: Non-buffer mode                   |
+|       | 1: Buffer mode                       |
++-------+--------------------------------------+
+|bit 4  | Special Fully Nested Mode. Not used  |
++-------+--------------------------------------+
+|bit 5-7| Not used. Should be 0                |
++-------+--------------------------------------+
 
 +--------------------------+
 |Timer 8253-5              |
@@ -93,4 +93,4 @@ Port Description
 
 0x3f8-0x3ff: modem
 
-:: _8259 http://www.brokenthorn.com/Resources/OSDevPic.html
+.. _8259: http://www.brokenthorn.com/Resources/OSDevPic.html
