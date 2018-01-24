@@ -5,7 +5,7 @@ IBM PCjr cheatsheet
 PIC 8259
 --------
 
-Only one (maste) PIC `8259`_ in the PCjr. There is no slave PIC.
+Only one (master) PIC `8259`_ in the PCjr. There is no slave PIC.
 
 +-------+------------------------------------+
 | 0x20  |Initialization Command Word 1 (ICW1)|
@@ -64,6 +64,20 @@ Only one (maste) PIC `8259`_ in the PCjr. There is no slave PIC.
 |bit 3-7| Specifies the x86 interrupt vector   |
 |       | address times 8                      |
 +-------+--------------------------------------+
+
+Example:
+~~~~~~~~
+
+.. code:: asm
+
+    ; This is how the PCjr initializes the PIC
+    mov al,0b0001_0011          ;ICW1
+    out 0x20,al
+    mov al,0b0000_1000          ;ICW2. IVT starts at 8 (1*8)
+    out 0x21,al
+    mov al,0b0000_1001          ;ICW4
+    out 0x21,al
+
 
 Timer 8253-5
 ------------
