@@ -9,6 +9,12 @@ PIC 8259
 
 Only one (master) PIC `8259`_ in the PCjr. There is no slave PIC.
 
+* 0x20: Command and Status Register
+* 0x21: Interrupt Mask Register and Data Register
+
+Init Commands
+~~~~~~~~~~~~~
+
 +-------+---------------------------------------+
 | 0x20  | Initialization Command Word 1 (ICW1)  |
 +=======+=======================================+
@@ -57,15 +63,30 @@ Only one (master) PIC `8259`_ in the PCjr. There is no slave PIC.
 |bit 5-7| Not used. Should be 0                 |
 +-------+---------------------------------------+
 
+Operation Commands
+~~~~~~~~~~~~~~~~~~
+
 +-------+---------------------------------------+
 | 0x20  | Operation Command Word 2 (OCW2)       |
 +=======+=======================================+
 |bit 0-2| Interrupt level upon which controller |
 |       | must react.                           |
 +-------+---------------------------------------+
-|bit 3-7| Specifies the x86 interrupt vector    |
-|       | address times 8                       |
+|bit 3-4| Reserved, must be ``0``               |
 +-------+---------------------------------------+
+|bit 5  | End Of Interrupt (EOI) request        |
++-------+---------------------------------------+
+|bit 6  | Selection                             |
++-------+---------------------------------------+
+|bit 7  | Rotation option                       |
++-------+---------------------------------------+
+
++-------+-------------------------------------------+
+| 0x21  | Interrupt Mask Register (IMR)             |
++=======+===========================================+
+|bit 0-7| IRQ0 - IRQ7. ``1``: Interrupt masked,     |
+|       | ``0``: unmasked                           |
++-------+-------------------------------------------+
 
 Example:
 ~~~~~~~~
@@ -78,6 +99,10 @@ Example:
     mov     al,0b0000_1000          ;ICW2. IVT starts at 8 (1*8)
     out     0x21,al
     mov     al,0b0000_1001          ;ICW4
+    out     0x21,al
+
+    ; Enable vertical retrace interrupt
+    mov     al,0b1101_1111          ;Vertical retrace interrupt unmasked
     out     0x21,al
 
     ; After receiving a hardware interrupt send the EOI command
@@ -225,11 +250,11 @@ Example:
 NMI mask reg
 ------------
 
-A read to port 0xa0 will clear the keyboard NMI latch. This latch causes an NMI
-on the first rising edge of the keyboard data if the enable NMI bit (port 0xa0
-bit 7) is on. This latch can also be read on the 8255 PCO. The program can
-determine if a keystroke occurred while the NMI was I disabled by reading the
-status of this latch. This latch must be cleared before another NMI can be
+A read to port ``0xa0`` will clear the keyboard NMI latch. This latch causes an
+NMI on the first rising edge of the keyboard data if the enable NMI bit (port
+``0xa0`` bit 7) is on. This latch can also be read on the 8255 PCO. The program
+can determine if a keystroke occurred while the NMI was I disabled by reading
+the status of this latch. This latch must be cleared before another NMI can be
 received.
 
 +---------+---------------------------------------------------------------+
