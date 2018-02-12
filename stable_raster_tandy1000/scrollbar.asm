@@ -224,6 +224,7 @@ new_i08:
 
         %endrep
 
+%if 0
         times   200 nop                         ;leave some blank lines
         mov     si,colors
 
@@ -247,14 +248,15 @@ new_i08:
                 mov     al,bh                   ;set reg 0 so display works again
                 out     dx,al                   ;(register)
         %endrep
+%endif
 
-        times   200 nop                         ;leave some blank lines
+        times   500 nop                         ;leave some blank lines
         mov     si,colors
         ;
         ; rasterbar without noise (using nops instead of horiz retrace)
         ;
         WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
-        times  40 nop                           ; and sync
+        times  55 nop                           ; and sync
         %rep 16
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
@@ -269,10 +271,11 @@ new_i08:
 
                 in      al,dx                   ;reset to register again
 
-                times   57 nop                  ;sync
+                times   45 nop                  ;sync
         %endrep
 
 
+%if 0
         times   200 nop                         ;leave some blank lines
         mov     si,colors
         ;
@@ -297,8 +300,7 @@ new_i08:
                 out     dx,al                   ;(register)
         %endrep
 
-        in      al,dx                           ;reset to register again
-
+%endif
 
         inc     byte [tick]
 
