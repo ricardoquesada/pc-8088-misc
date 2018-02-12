@@ -250,13 +250,14 @@ new_i08:
         %endrep
 %endif
 
-        times   500 nop                         ;leave some blank lines
+        times   300 nop                         ;leave some blank lines
         mov     si,colors
         ;
         ; rasterbar without noise (using nops instead of horiz retrace)
         ;
         WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
-        times  55 nop                           ; and sync
+        ;times  55 nop                           ; and sync
+        times  30 nop                           ; and sync
         %rep 16
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
@@ -269,14 +270,67 @@ new_i08:
                 mov     dl,ch                   ;dx=0x3da
                 out     dx,al                   ;(register)
 
-                in      al,dx                   ;reset to register again
+                times   42 nop                  ;sync
+		mov 	al,al 			;2 byte fetches, 2 cycles
+		mov 	al,al 			;2 byte fetches, 2 cycles
+		mov 	al,al 			;2 byte fetches, 2 cycles
+        %endrep
 
-                times   45 nop                  ;sync
+        times   300 nop                         ;leave some blank lines
+        mov     si,colors
+        ;
+        ; rasterbar without noise (using nops instead of horiz retrace)
+        ;
+        WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
+        ;times  55 nop                           ; and sync
+        times  30 nop                           ; and sync
+        %rep 16
+                mov     al,bl                   ;color to update
+                out     dx,al                   ;dx=0x03da (register)
+
+                lodsb                           ;load one color value in al
+                mov     dl,cl                   ;dx=0x3de
+                out     dx,al                   ;update color (data)
+
+                mov     al,bh                   ;set reg 0 so display works again
+                mov     dl,ch                   ;dx=0x3da
+                out     dx,al                   ;(register)
+
+                times   41 nop                  ;sync
+		mov 	al,al 			;2 byte fetches, 2 cycles
+		mov 	al,al 			;2 byte fetches, 2 cycles
+		mov 	al,al 			;2 byte fetches, 2 cycles
         %endrep
 
 
-%if 0
-        times   200 nop                         ;leave some blank lines
+        times   300 nop                         ;leave some blank lines
+        mov     si,colors
+        ;
+        ; rasterbar without noise (using nops instead of horiz retrace)
+        ;
+        WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
+        ;times  55 nop                           ; and sync
+        times  30 nop                           ; and sync
+        %rep 16
+                mov     al,bl                   ;color to update
+                out     dx,al                   ;dx=0x03da (register)
+
+                lodsb                           ;load one color value in al
+                mov     dl,cl                   ;dx=0x3de
+                out     dx,al                   ;update color (data)
+
+                mov     al,bh                   ;set reg 0 so display works again
+                mov     dl,ch                   ;dx=0x3da
+                out     dx,al                   ;(register)
+
+                times   40 nop                  ;nop:       1 bytes, 3 cycles
+		times 	2 mov 	al,al 		;mov al,al: 2 bytes, 2 cycles
+		times 	3 aaa 			;aaa:       1 byte fetches, 8 cycles
+        %endrep
+
+
+
+        times   300 nop                         ;leave some blank lines
         mov     si,colors
         ;
         ; rasterbar with lot of noise
@@ -284,8 +338,6 @@ new_i08:
         %rep 16
                 WAIT_HORIZONTAL_RETRACE         ;reset to register again
 
-                ;335 works: big fat raster
-                ;48
                 times  48 nop                   ;enough delay to trigger the "big noise"
 
                 mov     al,bl                   ;color to update
@@ -300,7 +352,6 @@ new_i08:
                 out     dx,al                   ;(register)
         %endrep
 
-%endif
 
         inc     byte [tick]
 
