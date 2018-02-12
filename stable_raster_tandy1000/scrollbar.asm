@@ -234,7 +234,7 @@ new_i08:
                 WAIT_HORIZONTAL_RETRACE         ;reset to register again
 
                 ;335 works: big fat raster
-                times  40 nop
+                times  50 nop
 
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
