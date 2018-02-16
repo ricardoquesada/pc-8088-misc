@@ -204,12 +204,15 @@ new_i08:
         mov     cx,0xdade                       ;ch=0xda used in 0x3da
                                                 ; dl=0xde used in 0x3de
 
+%if 0
         ;
         ; "normal" rasterbar without noise
         ;
         %rep 16
                 WAIT_HORIZONTAL_RETRACE         ;reset to register again
 
+                times   10 nop                  ;move it a bit to the right
+
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
 
@@ -224,31 +227,41 @@ new_i08:
 
         %endrep
 
-%if 0
+        ;
+        ; "normal" rasterbar without noise
+        ;
         times   200 nop                         ;leave some blank lines
         mov     si,colors
-
-        ;
-        ; big fat rasterbar
-        ;
         %rep 16
                 WAIT_HORIZONTAL_RETRACE         ;reset to register again
 
-                ;335 works: big fat raster
-                times  50 nop
-
-                mov     al,bl                   ;color to update
+                times   10 nop                  ;move it a bit to the right
+                
+                mov     bx,0x001f               ;bl = color to update (white=0x1f)
+                                                ; bh = 0. needed later
+                mov     cx,0xdade               ;ch=0xda used in 0x3da
+                                                ; cl=0xde used in 0x3de
+                mov     al,0x1f                 ;color to update
                 out     dx,al                   ;dx=0x03da (register)
 
+                sub     bx,bx
+                times 5 nop
                 lodsb                           ;load one color value in al
-                mov     dl,cl                   ;dx=0x3de
+
+                mov     dx,0x03de
                 out     dx,al                   ;update color (data)
 
                 mov     dl,ch                   ;dx=0x3da
-                mov     al,bh                   ;set reg 0 so display works again
+                xchg    bx,ax
                 out     dx,al                   ;(register)
         %endrep
-%endif
+
+
+        mov     bx,0x001f                       ;bl = color to update (white=0x1f)
+                                                ; bh = 0. needed later
+
+        mov     cx,0xdade                       ;ch=0xda used in 0x3da
+                                                ; cl=0xde used in 0x3de
 
         times   300 nop                         ;leave some blank lines
         mov     si,colors
@@ -271,9 +284,9 @@ new_i08:
                 out     dx,al                   ;(register)
 
                 times   42 nop                  ;sync
-		mov 	al,al 			;2 byte fetches, 2 cycles
-		mov 	al,al 			;2 byte fetches, 2 cycles
-		mov 	al,al 			;2 byte fetches, 2 cycles
+                mov     al,al                   ;2 byte fetches, 2 cycles
+                mov     al,al                   ;2 byte fetches, 2 cycles
+                mov     al,al                   ;2 byte fetches, 2 cycles
         %endrep
 
         times   300 nop                         ;leave some blank lines
@@ -297,10 +310,11 @@ new_i08:
                 out     dx,al                   ;(register)
 
                 times   41 nop                  ;sync
-		mov 	al,al 			;2 byte fetches, 2 cycles
-		mov 	al,al 			;2 byte fetches, 2 cycles
-		mov 	al,al 			;2 byte fetches, 2 cycles
+                mov     al,al                   ;2 byte fetches, 2 cycles
+                mov     al,al                   ;2 byte fetches, 2 cycles
+                mov     al,al                   ;2 byte fetches, 2 cycles
         %endrep
+%endif
 
 
         times   300 nop                         ;leave some blank lines
@@ -311,7 +325,7 @@ new_i08:
         WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
         ;times  55 nop                           ; and sync
         times  30 nop                           ; and sync
-        %rep 16
+        %rep 64 
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
 
@@ -324,22 +338,20 @@ new_i08:
                 out     dx,al                   ;(register)
 
                 times   40 nop                  ;nop:       1 bytes, 3 cycles
-		times 	2 mov 	al,al 		;mov al,al: 2 bytes, 2 cycles
-		times 	3 aaa 			;aaa:       1 byte fetches, 8 cycles
+                times   2 mov   al,al           ;mov al,al: 2 bytes, 2 cycles
+                times   3 aaa                   ;aaa:       1 byte fetches, 8 cycles
         %endrep
-
 
 
         times   300 nop                         ;leave some blank lines
         mov     si,colors
         ;
-        ; rasterbar with lot of noise
+        ; rasterbar without noise (using nops instead of horiz retrace)
         ;
-        %rep 16
-                WAIT_HORIZONTAL_RETRACE         ;reset to register again
-
-                times  48 nop                   ;enough delay to trigger the "big noise"
-
+        WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
+        ;times  55 nop                           ; and sync
+        times  30 nop                           ; and sync
+        %rep 64
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
 
@@ -350,7 +362,16 @@ new_i08:
                 mov     al,bh                   ;set reg 0 so display works again
                 mov     dl,ch                   ;dx=0x3da
                 out     dx,al                   ;(register)
+
+                ;notes:
+                ; 1 nop ~= 2 mov ax,ax
+                times   28 nop                  ;nop:       1 bytes, 3 cycles
+                times   3 mov   ax,ax           ;mov:       2 bytes, 2 cycles (slower than nop)
+                times   4 aaa                   ;aaa:       1 byte, 8 cycles
+                times   4 xchg  cx,dx           ;xchg:      2 bytes, 4 cycles  /  1 byte, 3 cycles (same as nop)
         %endrep
+
+
 
 
         inc     byte [tick]
@@ -372,6 +393,12 @@ old_pic_imr:                                    ;PIC IMR original value
         db      0
 
 colors:
+        db 0,1,2,3,4,5,6,7
+        db 8,9,10,11,12,13,14,15
+        db 0,1,2,3,4,5,6,7
+        db 8,9,10,11,12,13,14,15
+        db 0,1,2,3,4,5,6,7
+        db 8,9,10,11,12,13,14,15
         db 0,1,2,3,4,5,6,7
         db 8,9,10,11,12,13,14,15
 
