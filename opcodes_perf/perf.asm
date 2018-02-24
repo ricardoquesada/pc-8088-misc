@@ -26,10 +26,10 @@ section .text
         mov     sp,stacktop
         sti
 
-	mov	ax,0002				;80x25 text mode
-	int 	0x10
+        mov     ax,0002                         ;80x25 text mode
+        int     0x10
 
-	call	start_tests
+        call    start_tests
         call    wait_key
 
         mov     ax,0x4c00
@@ -44,171 +44,194 @@ wait_key:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 print_txt:
-	push	dx
-	mov 	dx,txt_enter
-	mov 	ah,9
-	int 	0x21
+        push    dx
+        mov     dx,txt_enter
+        mov     ah,9
+        int     0x21
 
-	pop	dx
-	mov	ah,9
-	int	0x21
+        pop     dx
+        mov     ah,9
+        int     0x21
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 start_tests:
-	; nop
-	mov 	dx,txt_nop
-	call 	print_txt
+        ; nop
+        mov     dx,txt_nop
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 nop
-	
+        times   1000 nop
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
 
-	; aaa
-	mov 	dx,txt_aaa
-	call 	print_txt
+        ; aaa
+        mov     dx,txt_aaa
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 aaa
-	
+        times   1000 aaa
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; aad
-	mov 	dx,txt_aad
-	call 	print_txt
+        ; aad
+        mov     dx,txt_aad
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 aad
-	
+        times   1000 aad
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; aam
-	mov 	dx,txt_aam
-	call 	print_txt
+        ; aam
+        mov     dx,txt_aam
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 aam
-	
+        times   1000 aam
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
 
-	; mov al,al
-	mov 	dx,txt_mov_al_al
-	call 	print_txt
+        ; mov al,al
+        mov     dx,txt_mov_al_al
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 mov al,al
-	
+        times   1000 mov al,al
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; sub al,al
-	mov 	dx,txt_sub_al_al
-	call 	print_txt
+        ; sub al,al
+        mov     dx,txt_sub_al_al
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 sub al,al
-	
+        times   1000 sub al,al
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; sub al,0
-	mov 	dx,txt_sub_al_0
-	call 	print_txt
+        ; sub al,0
+        mov     dx,txt_sub_al_0
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 sub al,0
-	
+        times   1000 sub al,0
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; sub ax,0
-	mov 	dx,txt_sub_ax_0
-	call 	print_txt
+        ; sub ax,0
+        mov     dx,txt_sub_ax_0
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 sub ax,0
-	
+        times   1000 sub ax,0
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; xchg_cx_dx
-	mov 	dx,txt_xchg_cx_dx
-	call 	print_txt
+        ; xchg_cx_dx
+        mov     dx,txt_xchg_cx_dx
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 xchg cx,dx
-	
+        times   1000 xchg cx,dx
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; xchg_ax_dx
-	mov 	dx,txt_xchg_ax_dx
-	call 	print_txt
+        ; xchg_ax_dx
+        mov     dx,txt_xchg_ax_dx
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 xchg ax,dx
-	
+        times   1000 xchg ax,dx
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; inc al
-	mov 	dx,txt_inc_al
-	call 	print_txt
+        ; inc al
+        mov     dx,txt_inc_al
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 inc al
-	
+        times   1000 inc al
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; inc ax
-	mov 	dx,txt_inc_ax
-	call 	print_txt
+        ; inc ax
+        mov     dx,txt_inc_ax
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 inc ax
-	
+        times   1000 inc ax
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	; cwd
-	mov 	dx,txt_cwd
-	call 	print_txt
+        ; cwd
+        mov     dx,txt_cwd
+        call    print_txt
         call    ZTimerOn
 
-	times 	1000 cwd
-	
+        times   1000 cwd
+        
         call    ZTimerOff
         call    ZTimerReport
-	call 	wait_key
+        call    wait_key
 
-	ret
+        ; in al,0x60
+        mov     dx,txt_in_al_60
+        call    print_txt
+        call    ZTimerOn
+
+        times   1000 in al,0x60
+        
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+
+        ; in al,dx
+        mov     dx,txt_in_al_dx
+        call    print_txt
+        call    ZTimerOn
+
+        times   1000 in al,dx
+        
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+
+
+        ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; DATA
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .data
 
-txt_enter:	db 13,10,'$'
+txt_enter:      db 13,10,'$'
 txt_nop:
         db      'Testing: nop$'
 
@@ -247,6 +270,12 @@ txt_sub_al_0:
 
 txt_cwd:
         db      'Testing: cwd$'
+
+txt_in_al_60:
+        db      'Testing: in al,0x60$'
+
+txt_in_al_dx:
+        db      'Testing: in al,dx$'
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
