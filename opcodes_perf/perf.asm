@@ -113,6 +113,28 @@ start_tests:
         call    ZTimerReport
         call    wait_key
 
+        ; mov dx,0
+        mov     dx,txt_mov_dx_0
+        call    print_txt
+        call    ZTimerOn
+
+        times   1000 mov dx,0
+        
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+
+        ; mov dl,0
+        mov     dx,txt_mov_dl_0
+        call    print_txt
+        call    ZTimerOn
+
+        times   1000 mov dl,0
+        
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+
         ; sub al,al
         mov     dx,txt_sub_al_al
         call    print_txt
@@ -223,6 +245,28 @@ start_tests:
         call    ZTimerReport
         call    wait_key
 
+        ; push dx 
+        mov     dx,txt_push_dx
+        call    print_txt
+        call    ZTimerOn
+
+        times   1000 push dx
+        
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+
+        ; pop dx 
+        mov     dx,txt_pop_dx
+        call    print_txt
+        call    ZTimerOn
+
+        times   1000 pop dx
+        
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+
 
         ret
 
@@ -246,6 +290,12 @@ txt_aam:
 
 txt_mov_al_al:
         db      'Testing: mov al,al$'
+
+txt_mov_dx_0:
+        db      'Testing: mov dx,0$'
+
+txt_mov_dl_0:
+        db      'Testing: mov dl,0$'
 
 txt_sub_al_al:
         db      'Testing: sub al,al$'
@@ -276,6 +326,12 @@ txt_in_al_60:
 
 txt_in_al_dx:
         db      'Testing: in al,dx$'
+
+txt_push_dx:
+        db      'Testing: push dx$'
+
+txt_pop_dx:
+        db      'Testing: pop dx$'
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK

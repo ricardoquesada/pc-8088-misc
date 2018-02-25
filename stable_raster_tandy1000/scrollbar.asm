@@ -363,12 +363,13 @@ new_i08:
                 mov     dl,ch                   ;dx=0x3da
                 out     dx,al                   ;(register)
 
-                ;notes:
-                ; 1 nop ~= 2 mov ax,ax
-                times   28 nop                  ;nop:       1 bytes, 3 cycles
-                times   3 mov   ax,ax           ;mov:       2 bytes, 2 cycles (slower than nop)
-                times   4 aaa                   ;aaa:       1 byte, 8 cycles
-                times   4 xchg  cx,dx           ;xchg:      2 bytes, 4 cycles  /  1 byte, 3 cycles (same as nop)
+                ;delays
+                times   20 nop
+                times   10 cwd
+                times   2 aaa
+                times   4 xchg  cx,dx
+                times   1 in al,0x60
+                mov     dx,0x3da
         %endrep
 
 
