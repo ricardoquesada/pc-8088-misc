@@ -349,8 +349,8 @@ new_i08:
         ; rasterbar without noise (using nops instead of horiz retrace)
         ;
         WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
-        ;times  55 nop                           ; and sync
-        times  30 nop                           ; and sync
+        times  55 nop                           ; and sync
+        ;times  30 nop                           ; and sync
         %rep 64
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
