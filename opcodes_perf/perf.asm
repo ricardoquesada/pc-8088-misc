@@ -11,6 +11,7 @@ bits    16
 cpu     8086
 
 extern ZTimerOn, ZTimerOff, ZTimerReport
+extern detect_card
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; CODE
@@ -25,6 +26,9 @@ section .text
         mov     ss,ax                           ; setting the stack pointer
         mov     sp,stacktop
         sti
+
+        call    detect_card
+        mov     [video_card],al
 
         mov     ax,0000                         ;40x25 text mode
         int     0x10
@@ -61,7 +65,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 nop
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -73,7 +77,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 aaa
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -84,7 +88,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 aad
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -95,7 +99,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 aam
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -107,7 +111,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 mov al,al
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -118,7 +122,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 mov dx,0
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -129,7 +133,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 mov dl,0
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -141,7 +145,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 sub al,al
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -152,7 +156,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 sub al,0
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -163,7 +167,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 sub ax,0
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -174,7 +178,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 xchg cx,dx
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -185,7 +189,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 xchg ax,dx
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -196,7 +200,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 inc al
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -207,7 +211,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 inc ax
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -218,7 +222,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 cwd
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -230,7 +234,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 in al,0x60
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -241,23 +245,23 @@ start_tests:
         call    ZTimerOn
 
         times   1000 in al,dx
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
 
-        ; push dx 
+        ; push dx
         mov     dx,txt_push_dx
         call    print_txt
         call    ZTimerOn
 
         times   1000 push dx
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
 
-        ; pop dx 
+        ; pop dx
         mov     dx,txt_pop_dx
         call    print_txt
         call    ZTimerOn
@@ -298,7 +302,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 out dx, al
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -309,7 +313,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 mul al
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -320,7 +324,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 mul ax
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -333,7 +337,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 div bl
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -347,7 +351,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 div bx
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -359,7 +363,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 xlat
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -377,7 +381,7 @@ start_tests:
         call    ZTimerOn
 
         rep     movsb
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -396,7 +400,7 @@ start_tests:
         call    ZTimerOn
 
         rep     movsw
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -408,7 +412,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 shl al,1
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -420,7 +424,7 @@ start_tests:
         call    ZTimerOn
 
         times   1000 shl al,cl
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -433,7 +437,7 @@ start_tests:
 
 l0:
         loop    l0
-        
+
         call    ZTimerOff
         call    ZTimerReport
         call    wait_key
@@ -452,9 +456,15 @@ disable_interrupts:
         mov     al,0b1111_1110                  ;Mask off everything
         out     0x21,al
 
-;        mov     al,0                            ;PCjr only: disable nmi
-;        out     0xa0,al
+        call    disable_nmi
+        ret
 
+disable_nmi:
+        cmp     byte [video_card],2             ;pcjr is two
+        jnz     .exit
+        mov     al,0                            ;PCjr only: disable nmi
+        out     0xa0,al
+.exit
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -462,36 +472,30 @@ enable_interrupts:
         mov     al,[old_pic_imr]
         out     0x21,al
 
-;        mov     al,0b1000_0000                  ;PCjr only: enable nmi
-;        out     0xa0,al
-
+        call    enable_nmi
         sti
 
         ret
 
+enable_nmi:
+        cmp     byte [video_card],2
+        jnz     .exit
+        in      al,0xa0
+        mov     al,0b1000_0000                  ;PCjr only: enable nmi
+        out     0xa0,al
+.exit:
+        ret
+
+
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 wait_key:
         ;enable keyboard interrupt
-        sti
-
-        mov     al,0b1111_1100
-        out     0x21,al
-
-;        in      al,0xa0
-;        mov     al,0b1000_0000
-;        out     0xa0,al                         ;PCjr only: enable nmi
+        call    enable_interrupts
 
         xor     ah,ah                           ;Function number: get key
         int     0x16                            ;Call BIOS keyboard interrupt
 
-        ;disable keyboard interrupt
-        mov     al,0b1111_1110
-        out     0x21,al
-
-;        mov     al,0
-;        out     0xa0,al                         ;PCjr only: disable nmi
-
-        cli
+        call    disable_interrupts
 
         ret
 
@@ -502,6 +506,8 @@ wait_key:
 section .data
 
 old_pic_imr:    db 0
+
+video_card:     db 0
 
 txt_enter:      db 13,10,'$'
 txt_nop:

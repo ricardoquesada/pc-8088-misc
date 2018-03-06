@@ -10,7 +10,7 @@ LDFLAGS = -oEXE -m
 default: $(TARGET)
 all: res default
 
-OBJECTS = perf.o ../common/pztimer.o
+OBJECTS = perf.o ../common/detect_card.o ../common/pztimer.o
 
 %.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
