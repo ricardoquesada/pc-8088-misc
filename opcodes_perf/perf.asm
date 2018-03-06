@@ -425,6 +425,19 @@ start_tests:
         call    ZTimerReport
         call    wait_key
 
+        ; loop
+        mov     dx,txt_loop
+        call    print_txt
+        mov     cx,1000
+        call    ZTimerOn
+
+l0:
+        loop    l0
+        
+        call    ZTimerOff
+        call    ZTimerReport
+        call    wait_key
+
         ; re-enable pic
         call    enable_interrupts
 
@@ -439,8 +452,8 @@ disable_interrupts:
         mov     al,0b1111_1110                  ;Mask off everything
         out     0x21,al
 
-        mov     al,0                            ;PCjr only: disable nmi
-        out     0xa0,al
+;        mov     al,0                            ;PCjr only: disable nmi
+;        out     0xa0,al
 
         ret
 
@@ -449,8 +462,8 @@ enable_interrupts:
         mov     al,[old_pic_imr]
         out     0x21,al
 
-        mov     al,0b1000_0000                  ;PCjr only: enable nmi
-        out     0xa0,al
+;        mov     al,0b1000_0000                  ;PCjr only: enable nmi
+;        out     0xa0,al
 
         sti
 
@@ -464,9 +477,9 @@ wait_key:
         mov     al,0b1111_1100
         out     0x21,al
 
-        in      al,0xa0
-        mov     al,0b1000_0000
-        out     0xa0,al                         ;PCjr only: enable nmi
+;        in      al,0xa0
+;        mov     al,0b1000_0000
+;        out     0xa0,al                         ;PCjr only: enable nmi
 
         xor     ah,ah                           ;Function number: get key
         int     0x16                            ;Call BIOS keyboard interrupt
@@ -475,8 +488,8 @@ wait_key:
         mov     al,0b1111_1110
         out     0x21,al
 
-        mov     al,0
-        out     0xa0,al                         ;PCjr only: disable nmi
+;        mov     al,0
+;        out     0xa0,al                         ;PCjr only: disable nmi
 
         cli
 
@@ -583,6 +596,9 @@ txt_shl_al_1:
 
 txt_shl_al_cl:
         db      'Testing: shl al,cl / cl=4$'
+
+txt_loop:
+        db      'Testing: loop$'
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
