@@ -27,11 +27,12 @@ section .text
         mov     sp,stacktop
         sti
 
-        call    detect_card
-        mov     [video_card],al
-
         mov     ax,0000                         ;40x25 text mode
         int     0x10
+
+        call    detect_card
+        mov     [video_card],al
+        call    print_detected_card
 
         call    start_tests
         sti
@@ -48,6 +49,17 @@ print_txt:
         int     0x21
 
         pop     dx
+        mov     ah,9
+        int     0x21
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+print_detected_card:
+        sub     ah,ah
+        mov     al,byte [video_card]
+        shl     al,1
+        mov     bx,ax
+        mov     dx,[video_card_tbl+bx]
         mov     ah,9
         int     0x21
         ret
@@ -478,6 +490,13 @@ enable_interrupts:
         ret
 
 enable_nmi:
+        ; It is important to disable NMI on PCjr because the NMI on the PCjr
+        ; is triggered by the IR Keyboard code. By disabling it, we will have
+        ; more stable values.
+        ; In theory, it should be "safe" to disable NMI in all platforms (PC, PCjr,
+        ; and Tandy 1000). But on the Tandy, the first 3 bits of 0xa0 are used to
+        ; configure the memory and changing them might crash the computer if not
+        ; used correctly.
         cmp     byte [video_card],2
         jnz     .exit
         in      al,0xa0
@@ -508,6 +527,24 @@ section .data
 old_pic_imr:    db 0
 
 video_card:     db 0
+video_card_mda:          db 'MDA',13,10,'$'
+video_card_cga:          db 'CGA', 13,10,'$'
+video_card_pcJr:         db 'PCjr', 13,10,'$'
+video_card_tandy1000:    db 'Tandy1000',13,10,'$'
+video_card_tandySLTL:    db 'Tandy1000 sl/tl',13,10,'$'
+video_card_ega:          db 'EGA',13,10,'$'
+video_card_vga:          db 'VGA',13,10,'$'
+video_card_mcga:         db 'MCGA',13,10,'$'
+
+video_card_tbl:
+        dw      video_card_mda
+        dw      video_card_cga
+        dw      video_card_pcJr
+        dw      video_card_tandy1000
+        dw      video_card_tandySLTL
+        dw      video_card_ega
+        dw      video_card_vga
+        dw      video_card_mcga
 
 txt_enter:      db 13,10,'$'
 txt_nop:
