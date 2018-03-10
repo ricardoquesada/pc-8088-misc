@@ -42,6 +42,7 @@ VGA_ADDRESS     equ     0x03da                  ;Tandy == PCJr.
         ror     al,1
         jnc     %%retrace
 %endmacro
+
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; CODE
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
@@ -245,8 +246,9 @@ new_i08:
         ;
         ; rasterbar without noise (using nops instead of horiz retrace)
         ;
+        mov     cx,sync_jr_a
         WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
-        times  40 nop                           ; and sync
+        call    cx
         %rep 16
                 mov     al,bl                   ;color to update
                 out     dx,al                   ;dx=0x03da (register)
@@ -259,10 +261,9 @@ new_i08:
 
                 in      al,dx                   ;reset to register again
 
-                times   57 nop                  ;sync
+                call    cx
         %endrep
-
-
+        
         times   200 nop                         ;leave some blank lines
         mov     si,colors
         ;
@@ -295,6 +296,34 @@ new_i08:
         iret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+delay_jr_a:
+        xchg    ax,dx
+        times   40 nop
+        times   3 cwd
+        xchg    ax,dx
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+sync_jr_a:
+        times   30 nop
+        mov     cx,delay_jr_a
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+delay_jr_b:
+        xchg    ax,dx
+        times   36 nop
+        times   3 cwd
+        xchg    ax,dx
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
+sync_jr_b:
+        times   29 nop
+        mov     cx,delay_jr_a
+        ret
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; DATA
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 section .data data
@@ -309,7 +338,6 @@ old_pic_imr:                                    ;PIC IMR original value
 colors:
         db 0,1,2,3,4,5,6,7
         db 8,9,10,11,12,13,14,15
-
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; STACK
