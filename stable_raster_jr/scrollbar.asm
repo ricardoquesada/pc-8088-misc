@@ -246,7 +246,7 @@ new_i08:
         ;
         ; rasterbar without noise (using nops instead of horiz retrace)
         ;
-        mov     cx,sync_jr_a
+        mov     cx,sync_jr_b
         WAIT_HORIZONTAL_RETRACE                 ;wait for retrace
         call    cx
         %rep 16
@@ -313,14 +313,14 @@ sync_jr_a:
 delay_jr_b:
         xchg    ax,dx
         times   36 nop
-        times   3 cwd
+        times   5 cwd
         xchg    ax,dx
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 sync_jr_b:
+        mov     cx,delay_jr_b
         times   29 nop
-        mov     cx,delay_jr_a
         ret
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
