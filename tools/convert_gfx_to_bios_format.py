@@ -120,14 +120,14 @@ def parse_args():
         description='Converts .raw images to different formats supported by '
         'BIOS' , epilog="""Example:
 
-$ %(prog)s -f 9 -o image.tandy image.raw
+$ %(prog)s -g 9 -o image.tandy image.raw
 """)
     parser.add_argument('filename', metavar='<filename>',
-                        help='file to convert')
+            help='file to convert')
     parser.add_argument('-g', '--bios_gfx_mode', type=int, metavar='BIOS_graphics_mode',
-                        dest='format', help='output file. Default: stdout', default=4)
+            dest='format', help='output file. Default: 4. Valid options: 4, 6, 8, 9, 10', default=4)
     parser.add_argument('-o', '--output-file', metavar='<filename>',
-                        help='output file. Default: stdout')
+            help='output file. Default: stdout')
 
     args = parser.parse_args()
     return args
