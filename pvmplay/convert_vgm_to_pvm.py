@@ -170,7 +170,7 @@ def parse_args():
         description='Converts VGM to PVM',
         epilog="""Example:
 
-$ %(prog)s -o my_music.pvm my_music.vgm
+$ %(prog)s my_music.vgm
 """)
     parser.add_argument('filenames',
             metavar='<filename>',
@@ -186,7 +186,7 @@ def main():
     """Main function."""
     args = parse_args()
 
-    print('VGM to PVM v0.1 - riq/pvm - http://pungas.space\n')
+    print('VGM to PVM v0.2 - riq/pvm - http://pungas.space\n')
     for fd in args.filenames:
         ToPVM(fd).run()
 
