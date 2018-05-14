@@ -39,35 +39,65 @@ class ToPVM:
         self._output_data = bytearray()
         self._current_port_data = bytearray()
 
+        self._should_loop = False
+        self._pvm_loop_offset = 0
+
     def run(self):
         """Execute the conversor."""
         with open(self._out_filename, 'w+') as fd_out:
             # FIXME: Assuming VGM version is 1.50 (64 bytes of header)
             header = bytearray(self._vgm_fd.read(0x40))
 
-            print('Converting: %s -> %s...' % (self._vgm_fd.name,
-                    self._out_filename), end='')
+            print('Converting: %s -> %s...' %
+                    (self._vgm_fd.name, self._out_filename), end='')
 
+            # 0x00: "Vgm " (0x56 0x67 0x6d 0x20) file identification (32 bits)
             if header[:4].decode('utf-8') != 'Vgm ':
                 print(' failed. Not a valid VGM file')
                 return
 
+            # 0x08: Version number (32 bits)
+            #  Version 1.50 is stored as 0x00000150, stored as 0x50 0x01 0x00 0x00.
+            #  This is used for backwards compatibility in players, and defines which
+            #  header values are valid.
             vgm_version = struct.unpack_from("<I", header, 8)[0]
             if vgm_version != 0x150:
-                print(' failed. Invalid VGM version: %x' % vgm_version)
+                print(' failed. Invalid VGM version: %x (not 0x150)' %
+                        vgm_version)
                 return
 
+            # 0x0c: SN76489 clock (32 bits)
+            #  Input clock rate in Hz for the SN76489 PSG chip. A typical value is
+            #  3579545. It should be 0 if there is no PSG chip used.
             sn76489_clock = struct.unpack_from("<I", header, 12)[0]
             if sn76489_clock != 3579545:
                 print(' failed. Not a VGM SN76489 song')
                 return
 
-            # unpack little endian unsigned integer (4 bytes)
+            # 0x04: Eof offset (32 bits)
+            #  Relative offset to end of file (i.e. file length - 4).
+            #  This is mainly used to find the next track when concatanating
+            #  player stubs and multiple files.
             file_len = struct.unpack_from("<I", header, 4)[0]
             data = bytearray(self._vgm_fd.read(file_len + 4 - 0x40))
 
+            # 0x1c: Loop offset (32 bits)
+            #  Relative offset to loop point, or 0 if no loop.
+            #  For example, if the data for the one-off intro to a song was in bytes
+            #  0x0040-0x3fff of the file, but the main looping section started at
+            #  0x4000, this would contain the value 0x4000-0x1c = 0x00003fe4.
+            loop = struct.unpack_from("<I", header, 0x1c)[0]
+            self._should_loop = True if loop != 0 else False
+            vgm_loop_offset = loop + 0x1c - 0x40
+
             i = 0
             while i < len(data):
+                # when looping, flush RLE since loop should jump to start
+                # of valid code
+                if self._should_loop and i == vgm_loop_offset:
+                    self.flush_current_port_data()
+                    self._pvm_loop_offset = len(self._output_data)
+
                 if data[i] == 0x50:
                     self.add_port_data(data[i+1])
                     i = i+2
@@ -118,12 +148,17 @@ class ToPVM:
         # which procesor is supported
         #  either PAL/NTSC
         #  clock
-        header.append(0)
-        header.append(0)
+        #  should loop
+        flags = 0x0
+        if self._should_loop:
+            flags |= 0x1
 
-        # reserved: 4 bytes
-        for i in range(4):
-            header.append(0)
+        header.append(0)
+        header.append(flags)
+
+        # loop offset: 4 bytes
+        loop_offset = struct.pack("<I", self._pvm_loop_offset)
+        header += loop_offset
 
         self._output_data = header + self._output_data
 

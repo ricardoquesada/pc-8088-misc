@@ -286,8 +286,8 @@ music_init:
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 video_init:
-        cmp byte [enable_raster],0
-        je  .exit
+        cmp     byte [enable_raster],0
+        je      .exit
 
         mov     ax,0x0009                       ;320x200 x 16 colors
         int     0x10
@@ -420,7 +420,7 @@ END     equ     0b1000_0000
         mov     ds,ax
 
         cmp     byte [es:enable_raster],0
-        je  .l0
+        je      .l0
         call    inc_d020
 
 .l0:
@@ -451,7 +451,7 @@ END     equ     0b1000_0000
         je      .is_end
 
 .unsupported:
-        int     3
+        int 3
         jmp     .exit
 
 
@@ -485,16 +485,25 @@ END     equ     0b1000_0000
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 .is_end:
-        mov     byte [es:pvm_wait],5            ;wait 5 cycles before starting again
-        mov     word [es:pvm_offset],0x10       ; beginning of song
+        test    byte [0x0b],1
+        jz      .exit_song
+
+        mov     ax,[0xc]                        ;offset loop relative to start of data
+        add     ax,0x10                         ;add header size
+        mov     word [es:pvm_offset],ax         ;update new offset with loop data
         jmp     .exit_skip
 
+.exit_song:
+        mov     byte [es:exit_song],1
+        jmp     .exit_skip
+
+;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 .exit:
         mov     [es:pvm_offset],si
 .exit_skip:
 
         cmp     byte [es:enable_raster],0
-        je  .l2
+        je      .l2
         call    dec_d020
 .l2:
         pop     es
@@ -510,7 +519,6 @@ END     equ     0b1000_0000
 ; IRQ
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 new_i08:
-        int     3
         call    song_tick
 
         add     word [cs:i08_counter],PIT_divider
@@ -574,7 +582,10 @@ volume_0:
         db      0b1111_1111                     ;vol 0 channel 3
 
 enable_raster:
-    db  0               ;boolean. if 1, display raster bars
+        db      0                               ;boolean. if 1, display raster bars
+
+exit_song:
+        db      0                               ;if 1, song is over
 
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 ; section STACK
