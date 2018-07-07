@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ----------------------------------------------------------------------------
-# converts raw 320x200x16 to Tandy 1000 320x200x16 mode - riq
+# converts raw data to PCjr / Tandy 1000 graphic modes - riq
 # ----------------------------------------------------------------------------
 """
 Tool to convert raw to 320x200x16 for Tandy 1000
@@ -44,7 +44,7 @@ def parse_line_4(array):
         b2 = bitmap[i * 4 + 1] & 0x3
         b3 = bitmap[i * 4 + 2] & 0x3
         b4 = bitmap[i * 4 + 3] & 0x3
-        byte = (b1 << 6) | (b2 <<4) | (b3 << 2) | b4
+        byte = (b1 << 6) | (b2 << 4) | (b3 << 2) | b4
         ba.append(byte)
     return ba
 
@@ -62,9 +62,11 @@ def parse_line_8(array):
         b6 = bitmap[i * 8 + 5] & 0x1
         b7 = bitmap[i * 8 + 6] & 0x1
         b8 = bitmap[i * 8 + 7] & 0x1
-        byte = (b1 << 7) | (b2 << 6) | (b3 << 5) | (b4 << 4) | (b5 << 3) | (b6 << 2) | (b7 << 1) | b8
+        byte = (b1 << 7) | (b2 << 6) | (b3 << 5) | (b4 << 4) | (b5 << 3) | \
+               (b6 << 2) | (b7 << 1) | b8
         ba.append(byte)
     return ba
+
 
 def parse_line(array, colors):
     if colors == 16:
@@ -103,13 +105,42 @@ def write_to_file(lines, out_fd, gfx_format):
         out_fd.buffer.write(l)
 
 
+def convert_chunk(chunk, pixel_size):
+    """If the pixel_size is 1 byte, then return.
+    If the pixel_size is 2 bytes, skip the last byte, not needed"""
+    if pixel_size == 1:
+        # no conversion needed if size is 1
+        return chunk
+    ba = bytearray()
+    i = 0
+    for byte in chunk:
+        if i % 2 == 0:
+            ba.append(byte)
+        i = i + 1
+    return ba
+
+
+def get_file_size(image_file):
+    supported_sizes = (64000, 128000)
+    statinfo = os.stat(image_file)
+    if statinfo.st_size not in supported_sizes:
+        print('Invalid file size: %d' % statinfo.st_size)
+        sys.exit(-1)
+
+    return statinfo.st_size
+
+
 def run(image_file, gfx_format, output_fd):
     """execute the conversor"""
     lines = []
     width = gfx_format.width
+    file_size = get_file_size(image_file)
+    pixel_size = file_size // 64000
+    print('Pixel size is: %d' % pixel_size)
     with open(image_file, 'rb') as f:
-        for chunk in iter(lambda: f.read(width), b''):
-            lines.append(parse_line(chunk, gfx_format.colors))
+        for chunk in iter(lambda: f.read(width * pixel_size), b''):
+            converted_chunk = convert_chunk(chunk, pixel_size)
+            lines.append(parse_line(converted_chunk, gfx_format.colors))
 
     write_to_file(lines, output_fd, gfx_format)
 
@@ -118,7 +149,7 @@ def parse_args():
     """parse the arguments"""
     parser = argparse.ArgumentParser(
         description='Converts .raw images to different formats supported by '
-        'BIOS' , epilog="""Example:
+        'BIOS', epilog="""Example:
 
 $ %(prog)s -g 9 -o image.tandy image.raw
 """)
